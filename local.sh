@@ -110,7 +110,7 @@ EOF
 install_ingress() {
     if ! kubectl get namespace ingress-nginx &> /dev/null; then
         print_status "Installing nginx ingress controller..."
-        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.13.1/deploy/static/provider/kind/deploy.yaml
+        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
         print_status "Waiting for nginx ingress controller to be ready..."
         kubectl wait --namespace ingress-nginx \
             --for=condition=ready pod \
