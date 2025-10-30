@@ -4,7 +4,6 @@ on:
   workflow_run:
     workflows: ["Lint Code Base"]
     types: [completed]
-    branches: [main, development]
 
 jobs:
   deploy:
