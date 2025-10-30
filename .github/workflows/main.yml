@@ -1,16 +1,14 @@
 name: Deploy services to local cluster
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/**'
-      - 'local.sh'
-      - '.github/workflows/main.yml'
+  workflow_run:
+    workflows: ["Lint Code Base"]
+    types: [completed]
+    branches: [main, development]
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -19,33 +17,33 @@ jobs:
     timeout-minutes: 30
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Docker
-      uses: docker/setup-docker-action@v4
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
 
-    - name: Set up Kind
-      uses: helm/kind-action@v1
-      with:
-        install_only: true
+      - name: Set up Kind
+        uses: helm/kind-action@v1
+        with:
+          install_only: true
 
-    - name: Create Kind cluster and deploy services
-      run: |
-        ./local.sh create-cluster --skip-tests --skip-status
+      - name: Create Kind cluster and deploy services
+        run: |
+          ./local.sh create-cluster --skip-tests --skip-status
 
-    - name: Check status
-      run: |
-        ./local.sh status
+      - name: Check status
+        run: |
+          ./local.sh status
 
-    - name: Run E2E tests
-      run: |
-        ./local.sh e2e-test
+      - name: Run E2E tests
+        run: |
+          ./local.sh e2e-test
 
-    - name: Clean up cluster
-      run: |
-        ./local.sh delete-cluster
-        if kind get clusters | grep -q .; then
-          echo "ERROR: Clusters still exist after cleanup"
-          exit 1
-        fi
+      - name: Clean up cluster
+        run: |
+          ./local.sh delete-cluster
+          if kind get clusters | grep -q .; then
+            echo "ERROR: Clusters still exist after cleanup"
+            exit 1
+          fi
