@@ -1,0 +1,97 @@
+name: Lint Code Base
+
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+jobs:
+  # === TypeScript ===
+  lint-biome:
+    name: Lint Checkout (Biome)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Biome linter
+        uses: github/super-linter@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+
+          VALIDATE_BIOME_LINT: true
+          FIX_BIOME_LINT: true
+          FIX_BIOME_FORMAT: true
+          BIOME_CONFIG_FILE: ".lint/biome.json"
+
+          FILTER_REGEX_INCLUDE: "src/checkout/.*"
+
+  # === Go ===
+  lint-go:
+    name: Lint Catalog (Go)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Go linter
+        uses: github/super-linter@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+
+          VALIDATE_GO: true
+          FIX_GO_MODULES: true
+          GO_GOLANGCI_LINT_CONFIG_FILE: ".lint/.golangci.yml"
+
+          FILTER_REGEX_INCLUDE: "src/catalog/.*"
+
+  # === Java ===
+  lint-java:
+    name: Lint Java Services (Checkstyle)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - src/ui
+          - src/cart
+          - src/orders
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkstyle linter
+        uses: github/super-linter@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+
+          VALIDATE_JAVA: true
+          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+
+          FILTER_REGEX_INCLUDE: "${{ matrix.service }}/.*"
+
+  auto-fix-biome:
+    needs: lint-biome
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'pull_request' &&
+      github.ref_name != github.event.repository.default_branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit and push linting fixes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          branch: ${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
+          commit_message: "chore: fix linting issues"
+          commit_user_name: super-linter
+          commit_user_email: super-linter@super-linter.dev
