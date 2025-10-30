@@ -15,3 +15,8 @@ jobs:
     name: Deploy Services
     needs: lint
     uses: ./.github/workflows/main.yml
+
+  build-and-push:
+    name: Build and Push Docker Images
+    needs: lint
+    uses: ./.github/workflows/docker.yml
