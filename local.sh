@@ -172,7 +172,7 @@ deploy_services() {
     print_success "All deployments are available"
 
     print_status "Waiting for all pods to be ready and running..."
-    kubectl wait --namespace $NAMESPACE --for=condition=ready pods --timeout=600s --all
+    kubectl wait --namespace $NAMESPACE --for=condition=ready pods --timeout=1200s --all
     print_success "All pods are ready and running"
 }
 
