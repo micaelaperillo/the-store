@@ -103,7 +103,7 @@ EOF
     fi
 
     print_status "Waiting for cluster to be ready..."
-    kubectl wait --for=condition=Ready nodes --all --timeout=300s
+    kubectl wait --for=condition=Ready nodes --all --timeout=600s
     print_success "Cluster is ready"
 }
 
@@ -115,7 +115,7 @@ install_ingress() {
         kubectl wait --namespace ingress-nginx \
             --for=condition=ready pod \
             --selector=app.kubernetes.io/component=controller \
-            --timeout=300s
+            --timeout=600s
         print_success "Nginx ingress controller installed"
     else
         print_success "Nginx ingress controller already installed"
@@ -151,7 +151,7 @@ deploy_services() {
             print_status "Deleting namespace '$NAMESPACE' and all resources..."
             kubectl delete namespace $NAMESPACE
             print_status "Waiting for namespace deletion to complete..."
-            kubectl wait --for=delete namespace/$NAMESPACE --timeout=300s
+            kubectl wait --for=delete namespace/$NAMESPACE --timeout=600s
             print_success "Namespace '$NAMESPACE' deleted successfully"
         else
             print_status "Using existing namespace '$NAMESPACE'"
@@ -168,11 +168,11 @@ deploy_services() {
     kubectl apply -f $DIR/dist/kubernetes.yaml -n $NAMESPACE
 
     print_status "Waiting for all deployments to be available..."
-    kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=300s --all
+    kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=600s --all
     print_success "All deployments are available"
 
     print_status "Waiting for all pods to be ready and running..."
-    kubectl wait --namespace $NAMESPACE --for=condition=ready pods --timeout=300s --all
+    kubectl wait --namespace $NAMESPACE --for=condition=ready pods --timeout=600s --all
     print_success "All pods are ready and running"
 }
 
@@ -296,7 +296,7 @@ cmd_e2e_tests() {
         exit 1
     fi
 
-    if ! kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=30s --all &> /dev/null; then
+    if ! kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=600s --all &> /dev/null; then
         print_error "Services are not running. Please ensure all deployments are available."
         exit 1
     fi
@@ -317,7 +317,7 @@ cmd_load_generator() {
         exit 1
     fi
 
-    if ! kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=30s --all &> /dev/null; then
+    if ! kubectl wait --namespace $NAMESPACE --for=condition=available deployments --timeout=600s --all &> /dev/null; then
         print_error "Services are not running. Please ensure all deployments are available."
         exit 1
     fi
