@@ -1,13 +1,10 @@
 name: Deploy services to local cluster
 
 on:
-  workflow_run:
-    workflows: ["Lint Code Base"]
-    types: [completed]
+  workflow_call:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     strategy:
       matrix:
         os: [ubuntu-latest]

@@ -1,0 +1,17 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main", "development"]
+  pull_request:
+    branches: ["main", "development"]
+
+jobs:
+  lint:
+    name: Lint Code Base
+    uses: ./.github/workflows/lint.yml
+
+  deploy:
+    name: Deploy Services
+    needs: lint
+    uses: ./.github/workflows/main.yml
