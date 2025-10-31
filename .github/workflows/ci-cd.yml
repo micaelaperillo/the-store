@@ -13,12 +13,12 @@ jobs:
 
   deploy:
     name: Deploy Services
-    needs: lint
+    needs: [lint, build-and-push]
     uses: ./.github/workflows/main.yml
 
   build-and-push:
     name: Build and Push Docker Images
-    needs: [lint, build-and-push]
+    needs: lint
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
