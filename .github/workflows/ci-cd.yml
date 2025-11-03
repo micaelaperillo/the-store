@@ -7,19 +7,28 @@ on:
     branches: ["main", "development"]
 
 jobs:
+  auth:
+    name: Authenticate / Login
+    uses: ./.github/workflows/auth.yml
+    secrets:
+      OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+      OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
+
   lint:
     name: Lint Code Base
+    needs: [auth]
     uses: ./.github/workflows/lint.yml
-
-  deploy:
-    name: Deploy Services
-    needs: [lint, build-and-push]
-    uses: ./.github/workflows/main.yml
 
   build-and-push:
     name: Build and Push Docker Images
-    needs: lint
+    needs: [lint]
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    
+  deploy:
+    name: Deploy Services
+    needs: [build-and-push]
+    uses: ./.github/workflows/main.yml
