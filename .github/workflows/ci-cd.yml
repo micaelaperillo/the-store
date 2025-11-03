@@ -8,9 +8,9 @@ on:
 
 jobs:
   auth:
-    name: Authenticate / Login
     uses: ./.github/workflows/auth.yml
     secrets:
+      OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}
       OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
       OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
 

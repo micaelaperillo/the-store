@@ -3,6 +3,8 @@ name: Authenticate VPN
 on:
   workflow_call:
     secrets:
+      OVPN_CONFIG:
+        required: true
       OVPN_CLIENT_KEY:
         required: true
       OVPN_TLS_AUTH_KEY:
@@ -11,6 +13,7 @@ on:
 jobs:
   authenticate-vpn:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -20,9 +23,13 @@ jobs:
           sudo apt update
           sudo apt install -y openvpn openvpn-systemd-resolved
 
+      - name: Create OVPN config file
+        run: |
+          echo "${{ secrets.OVPN_CONFIG }}" > client.ovpn
+
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v2
         with:
-          config_file: .github/workflows/client.ovpn
+          config_file: client.ovpn
           client_key: ${{ secrets.OVPN_CLIENT_KEY }}
           tls_auth_key: ${{ secrets.OVPN_TLS_AUTH_KEY }}
