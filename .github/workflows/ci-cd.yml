@@ -22,6 +22,10 @@ jobs:
   security:
     name: Security Audit
     uses: ./.github/workflows/security.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
     secrets: inherit
 
   build-and-push:
