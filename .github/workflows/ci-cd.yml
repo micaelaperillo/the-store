@@ -19,15 +19,19 @@ jobs:
     needs: [auth]
     uses: ./.github/workflows/lint.yml
 
+  security:
+    name: Security Audit
+    uses: ./.github/workflows/security.yml
+    secrets: inherit
+
   build-and-push:
     name: Build and Push Docker Images
-    needs: [lint]
+    needs: [lint, security]
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    
   deploy:
     name: Deploy Services
     needs: [build-and-push]

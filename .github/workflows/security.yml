@@ -1,0 +1,225 @@
+name: Audit Security on Code Base
+
+on:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gitleaks:
+    name: Secrets scan
+    runs-on: ubuntu-latest
+    container:
+      image: zricethezav/gitleaks:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        run: |
+          gitleaks detect --source . --verbose --no-git || true
+        continue-on-error: true
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && !github.event.act
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+
+  maven-dependency-scan:
+    name: Maven Dependency Analysis
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9-eclipse-temurin-21
+    strategy:
+      matrix:
+        service:
+          - cart
+          - orders
+          - ui
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze Maven dependencies
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          mvn dependency:tree -DoutputFile=dependency-tree.txt
+          mvn versions:display-dependency-updates
+
+      - name: Check for vulnerable dependencies
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 || true
+        continue-on-error: true
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maven-dependency-${{ matrix.service }}
+          path: ./src/${{ matrix.service }}/target/dependency-check-report.html
+
+  go-dependency-scan:
+    name: Go Dependency Analysis
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.23
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze Go dependencies
+        working-directory: ./src/catalog
+        run: |
+          go list -m all
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+        continue-on-error: true
+
+  node-dependency-scan:
+    name: Node.js Dependency Analysis
+    runs-on: ubuntu-latest
+    container:
+      image: node:20-alpine
+    strategy:
+      matrix:
+        service:
+          - checkout
+          - load-generator
+          - e2e
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate lock file if missing
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only
+          fi
+
+      - name: Audit dependencies without installing
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          # Audit using the lock file only
+          npm audit --audit-level=moderate
+        continue-on-error: true
+
+  docker-scout:
+    name: Docker Scout Analysis
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - cart
+          - catalog
+          - checkout
+          - orders
+          - ui
+          - load-generator
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker image (regular docker)
+        run: |
+          echo "Building image for ${{ matrix.service }}..."
+          docker build -t the-store-${{ matrix.service }}:scan ./src/${{ matrix.service }}
+        continue-on-error: false
+
+      - name: Docker Scout CVE Scan
+        run: |
+          echo "Scanning for vulnerabilities..."
+          docker scout cves the-store-${{ matrix.service }}:scan \
+            --only-severity critical,high \
+            --exit-code || true
+        continue-on-error: true
+
+      - name: Docker Scout Compare (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          docker scout compare the-store-${{ matrix.service }}:scan \
+            --to the-store-${{ matrix.service }}:latest || true
+        continue-on-error: true
+
+  trivy-scan:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    container:
+      image: aquasec/trivy:latest
+    strategy:
+      matrix:
+        service:
+          - cart
+          - catalog
+          - checkout
+          - orders
+          - ui
+          - load-generator
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Scan Dockerfile for vulnerabilities
+        run: |
+          echo "Scanning Dockerfile for ${{ matrix.service }}..."
+          trivy config ./src/${{ matrix.service }}/Dockerfile \
+            --severity CRITICAL,HIGH \
+            --exit-code 0
+        continue-on-error: true
+
+  iac-security:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    container:
+      image: bridgecrew/checkov:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        run: |
+          checkov --directory . --framework dockerfile,kubernetes --quiet --soft-fail
+
+  codeql:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.act }}
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      matrix:
+        language: ["java", "go", "javascript"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
