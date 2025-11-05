@@ -1,7 +1,24 @@
 name: Audit Security on Code Base
 
 on:
-  workflow_call:
+  schedule:
+    - cron: "0 0 */7 * *"
+  push:
+    paths:
+      - "src/*/pom.xml"
+      - "src/*/package.json"
+      - "src/*/package-lock.json"
+      - "src/*/go.mod"
+      - "src/*/go.sum"
+      - ".github/workflows/security.yml"
+  pull_request:
+    paths:
+      - "src/*/pom.xml"
+      - "src/*/package.json"
+      - "src/*/package-lock.json"
+      - "src/*/go.mod"
+      - "src/*/go.sum"
+      - ".github/workflows/security.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

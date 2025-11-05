@@ -19,18 +19,9 @@ jobs:
     needs: [auth]
     uses: ./.github/workflows/lint.yml
 
-  security:
-    name: Security Audit
-    uses: ./.github/workflows/security.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    secrets: inherit
-
   build-and-push:
     name: Build and Push Docker Images
-    needs: [lint, security]
+    needs: [lint]
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
