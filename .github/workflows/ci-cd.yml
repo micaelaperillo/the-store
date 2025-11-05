@@ -32,17 +32,14 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
-  docker:
-    name: Build Docker Images (Check)
-    needs: [auth, lint]
-    uses: ./.github/workflows/docker.yml
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  test:
+    name: Run unit tests
+    needs: [security, lint]
+    uses: ./.github/workflows/test.yml
 
   build-and-push:
     name: Build and Push Docker Images
-    needs: [security, docker]
+    needs: [test]
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&

@@ -1,0 +1,91 @@
+name: Test Services
+
+on:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect source code changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            sources:
+              - 'src/**'
+              - '.github/workflows/test.yml'
+
+      - name: Set should-run output
+        id: check
+        run: |
+          echo "should-run=${{ steps.filter.outputs.sources }}" >> $GITHUB_OUTPUT
+
+  test-java:
+    name: Test Java Services
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3.9-eclipse-temurin-21
+    strategy:
+      matrix:
+        service:
+          - cart
+          - orders
+          - ui
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        working-directory: ./src/${{ matrix.service }}
+        run: |
+          mvn test
+
+  test-go:
+    name: Test Go Service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.23
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        working-directory: ./src/catalog
+        run: |
+          go test -v ./...
+
+  test-typescript:
+    name: Test TypeScript Service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: node:20-alpine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        working-directory: ./src/checkout
+        run: |
+          apk add --no-cache python3 make g++
+          yarn install --frozen-lockfile
+
+      - name: Run tests
+        working-directory: ./src/checkout
+        run: |
+          yarn test
