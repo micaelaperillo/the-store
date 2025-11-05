@@ -22,9 +22,37 @@ on:
       - ".github/workflows/lint.yml"
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect source code changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            sources:
+              - 'src/checkout/**'
+              - 'src/catalog/**'
+              - 'src/cart/**'
+              - 'src/orders/**'
+              - 'src/ui/**'
+              - '.lint/**'
+
+      - name: Set should-run output
+        id: check
+        run: |
+          echo "should-run=${{ steps.filter.outputs.sources }}" >> $GITHUB_OUTPUT
+
   # === TypeScript ===
   lint-biome:
     name: Lint Checkout (Biome)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -47,6 +75,8 @@ jobs:
   # === Go ===
   lint-go:
     name: Lint Catalog (Go)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -68,6 +98,8 @@ jobs:
   # === Java ===
   lint-java:
     name: Lint Java Services (Checkstyle)
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
