@@ -2,24 +2,6 @@ name: Lint Code Base
 
 on:
   workflow_call:
-  push:
-    paths:
-      - "src/checkout/**"
-      - "src/catalog/**"
-      - "src/cart/**"
-      - "src/orders/**"
-      - "src/ui/**"
-      - ".lint/**"
-      - ".github/workflows/lint.yml"
-  pull_request:
-    paths:
-      - "src/checkout/**"
-      - "src/catalog/**"
-      - "src/cart/**"
-      - "src/orders/**"
-      - "src/ui/**"
-      - ".lint/**"
-      - ".github/workflows/lint.yml"
 
 jobs:
   detect-changes:
@@ -42,6 +24,7 @@ jobs:
               - 'src/orders/**'
               - 'src/ui/**'
               - '.lint/**'
+              - '.github/workflows/lint.yml''
 
       - name: Set should-run output
         id: check

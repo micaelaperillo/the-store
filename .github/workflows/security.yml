@@ -9,25 +9,8 @@ on:
         required: true
       NVD_API_KEY:
         required: true
-
   schedule:
     - cron: "0 0 */7 * *"
-  push:
-    paths:
-      - "src/*/pom.xml"
-      - "src/*/package.json"
-      - "src/*/package-lock.json"
-      - "src/*/go.mod"
-      - "src/*/go.sum"
-      - ".github/workflows/security.yml"
-  pull_request:
-    paths:
-      - "src/*/pom.xml"
-      - "src/*/package.json"
-      - "src/*/package-lock.json"
-      - "src/*/go.mod"
-      - "src/*/go.sum"
-      - ".github/workflows/security.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -54,6 +37,7 @@ jobs:
               - 'src/*/yarn.lock'
               - 'src/*/go.mod'
               - 'src/*/go.sum'
+              - '.github/workflows/security.yml'
 
       - name: Set should-run output
         id: check
