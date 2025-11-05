@@ -230,13 +230,49 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up JDK 21
+        if: matrix.language == 'java'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Set up Go
+        if: matrix.language == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+
+      - name: Set up Node.js
+        if: matrix.language == 'javascript'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - name: Build Java projects
+        if: matrix.language == 'java'
+        run: |
+          cd src/cart && mvn clean compile -DskipTests
+          cd ../orders && mvn clean compile -DskipTests
+          cd ../ui && mvn clean compile -DskipTests
+
+      - name: Build Go project
+        if: matrix.language == 'go'
+        run: |
+          cd src/catalog
+          go build -v ./...
+
+      - name: Build JavaScript projects
+        if: matrix.language == 'javascript'
+        run: |
+          cd src/checkout && npm ci && npm run build
+          cd ../e2e && npm ci
+          cd ../load-generator && npm ci
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
