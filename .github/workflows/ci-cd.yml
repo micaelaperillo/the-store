@@ -19,9 +19,34 @@ jobs:
     needs: [auth]
     uses: ./.github/workflows/lint.yml
 
+  security:
+    name: Security Audit
+    needs: [auth]
+    uses: ./.github/workflows/security.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+  docker:
+    name: Build Docker Images (Check)
+    needs: [auth]
+    uses: ./.github/workflows/docker.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
   build-and-push:
     name: Build and Push Docker Images
-    needs: [lint]
+    needs: [lint, security, docker]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}

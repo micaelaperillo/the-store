@@ -1,6 +1,15 @@
 name: Audit Security on Code Base
 
 on:
+  workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      NVD_API_KEY:
+        required: true
+
   schedule:
     - cron: "0 0 */7 * *"
   push:
@@ -25,7 +34,41 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect dependency changes
+        if: github.event_name != 'schedule'
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            dependencies:
+              - 'src/*/pom.xml'
+              - 'src/*/package.json'
+              - 'src/*/yarn.lock'
+              - 'src/*/go.mod'
+              - 'src/*/go.sum'
+
+      - name: Set should-run output
+        id: check
+        run: |
+          # Always run on schedule
+          if [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "should-run=true" >> $GITHUB_OUTPUT
+          else
+            # For push/PR/workflow_call, use the paths-filter result
+            echo "should-run=${{ steps.filter.outputs.dependencies }}" >> $GITHUB_OUTPUT
+          fi
+
   gitleaks:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     name: Secrets scan
     runs-on: ubuntu-latest
     container:
@@ -42,8 +85,9 @@ jobs:
         continue-on-error: true
   dependency-review:
     name: Dependency Review
+    needs: detect-changes
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && !github.event.act
+    if: needs.detect-changes.outputs.should-run == 'true' && github.event_name == 'pull_request' && !github.event.act
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,6 +99,8 @@ jobs:
 
   maven-dependency-scan:
     name: Maven Dependency Analysis
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     container:
       image: maven:3.9-eclipse-temurin-21
@@ -77,7 +123,7 @@ jobs:
       - name: Check for vulnerable dependencies
         working-directory: ./src/${{ matrix.service }}
         run: |
-          mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 || true
+          mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DnvdApiKey=${NVD_API_KEY} || true
         continue-on-error: true
 
       - name: Upload dependency reports
@@ -89,6 +135,8 @@ jobs:
 
   go-dependency-scan:
     name: Go Dependency Analysis
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     container:
       image: golang:1.23
@@ -106,6 +154,8 @@ jobs:
 
   node-dependency-scan:
     name: Node.js Dependency Analysis
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     container:
       image: node:20-alpine
@@ -135,6 +185,8 @@ jobs:
 
   docker-scout:
     name: Docker Scout Analysis
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -178,6 +230,8 @@ jobs:
 
   trivy-scan:
     name: Trivy Container Scan
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     container:
       image: aquasec/trivy:latest
@@ -204,6 +258,8 @@ jobs:
 
   iac-security:
     name: IaC Security Scan
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     container:
       image: bridgecrew/checkov:latest
@@ -217,8 +273,9 @@ jobs:
 
   codeql:
     name: CodeQL Analysis
+    needs: detect-changes
     runs-on: ubuntu-latest
-    if: ${{ !github.event.act }}
+    if: needs.detect-changes.outputs.should-run == 'true' && !github.event.act
     permissions:
       actions: read
       contents: read
@@ -270,9 +327,9 @@ jobs:
       - name: Build JavaScript projects
         if: matrix.language == 'javascript'
         run: |
-          cd src/checkout && npm ci && npm run build
-          cd ../e2e && npm ci
-          cd ../load-generator && npm ci
+          cd src/checkout && yarn install --frozen-lockfile && yarn build
+          cd ../e2e && yarn install --frozen-lockfile
+          cd ../load-generator && yarn install --frozen-lockfile
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
