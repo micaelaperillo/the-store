@@ -1,0 +1,20 @@
+serviceAccount:
+  name: orders
+  labels:
+    helm-chart: orders-1.2.4
+
+service:
+  name: orders
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+configmap:
+  name: orders
+  RETAIL_ORDERS_PERSISTENCE_PROVIDER: in-memory
+  RETAIL_ORDERS_MESSAGING_PROVIDER: in-memory
+
+secret:
+  name: orders-db
+  RETAIL_ORDERS_PERSISTENCE_USER: b3JkZXJz==
+  RETAIL_ORDERS_PERSISTENCE_PASSWORD: cUNIa0hQOGZUcjk0Vkk2bg==

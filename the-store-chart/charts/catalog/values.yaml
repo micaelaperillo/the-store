@@ -1,0 +1,19 @@
+serviceAccount:
+  name: catalog
+  labels:
+    helm-chart: catalog-1.2.4
+
+service:
+  name: catalog
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+configmap:
+  name: catalog
+  RETAIL_CATALOG_PERSISTENCE_PROVIDER: in-memory
+
+secret:
+  name: catalog-db
+  RETAIL_CATALOG_PERSISTENCE_USER: Y2F0YWxvZw==
+  RETAIL_CATALOG_PERSISTENCE_PASSWORD: VXFxMXhMUlVLc1lXdmI0bQ==

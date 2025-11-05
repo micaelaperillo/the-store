@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ .Values.configmap.name }}"
+data:
+  RETAIL_UI_ENDPOINTS_CATALOG: "{{ .Values.configmap.RETAIL_UI_ENDPOINTS_CATALOG }}"
+  RETAIL_UI_ENDPOINTS_CARTS: "{{ .Values.configmap.RETAIL_UI_ENDPOINTS_CARTS }}"
+  RETAIL_UI_ENDPOINTS_CHECKOUT: "{{ .Values.configmap.RETAIL_UI_ENDPOINTS_CHECKOUT }}"
+  RETAIL_UI_ENDPOINTS_ORDERS: "{{ .Values.configmap.RETAIL_UI_ENDPOINTS_ORDERS }}"

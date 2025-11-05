@@ -1,0 +1,56 @@
+name: CI/CD Pipeline
+
+on:
+  # push:
+  #   branches: ["development"]
+  pull_request:
+    branches: ["main", "development"]
+  workflow_call:
+
+jobs:
+  # auth:
+  #   uses: ./.github/workflows/auth.yml
+  #   secrets:
+  #     OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}
+  #     OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+  #     OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
+
+  lint:
+    name: Lint Code Base
+    # needs: [auth]
+    uses: ./.github/workflows/lint.yml
+
+  security:
+    name: Security Audit
+    # needs: [auth]
+    uses: ./.github/workflows/security.yml
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+  test:
+    name: Run unit tests
+    needs: [security, lint]
+    uses: ./.github/workflows/test.yml
+
+  build-and-push:
+    name: Build and Push Docker Images
+    needs: [test]
+    if: |
+      always() &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    uses: ./.github/workflows/docker.yml
+    secrets:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+  test-deploy:
+    name: Test Deploy Services Locally
+    needs: [build-and-push]
+    uses: ./.github/workflows/main.yml

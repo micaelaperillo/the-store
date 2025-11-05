@@ -1,0 +1,14 @@
+serviceAccount:
+  name: carts
+  labels:
+    helm-chart: carts-1.2.4
+
+service:
+  name: carts
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+configmap:
+  name: carts
+  RETAIL_CART_PERSISTENCE_PROVIDER: in-memory
