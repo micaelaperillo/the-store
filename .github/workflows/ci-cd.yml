@@ -34,7 +34,7 @@ jobs:
 
   docker:
     name: Build Docker Images (Check)
-    needs: [auth]
+    needs: [auth, lint]
     uses: ./.github/workflows/docker.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -42,7 +42,7 @@ jobs:
 
   build-and-push:
     name: Build and Push Docker Images
-    needs: [lint, security, docker]
+    needs: [security, docker]
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&
