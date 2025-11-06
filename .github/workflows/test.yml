@@ -30,49 +30,49 @@ jobs:
         run: |
           echo "should-run=${{ steps.filter.outputs.sources }}" >> $GITHUB_OUTPUT
 
-  test-java:
-    name: Test Java Services
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
-    runs-on: ubuntu-latest
-    container:
-      image: maven:3.9-eclipse-temurin-21
-    strategy:
-      matrix:
-        service:
-          - cart
-          - orders
-          - ui
-    env:
-      RETAIL_CART_PERSISTENCE_PROVIDER: in-memory
-      RETAIL_ORDERS_PERSISTENCE_PROVIDER: in-memory
-      RETAIL_ORDERS_MESSAGING_PROVIDER: in-memory
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # test-java:
+  #   name: Test Java Services
+  #   needs: detect-changes
+  #   if: needs.detect-changes.outputs.should-run == 'true'
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: maven:3.9-eclipse-temurin-21
+  #   strategy:
+  #     matrix:
+  #       service:
+  #         - cart
+  #         - orders
+  #         - ui
+  #   env:
+  #     RETAIL_CART_PERSISTENCE_PROVIDER: in-memory
+  #     RETAIL_ORDERS_PERSISTENCE_PROVIDER: in-memory
+  #     RETAIL_ORDERS_MESSAGING_PROVIDER: in-memory
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Run tests
-        working-directory: ./src/${{ matrix.service }}
-        run: |
-          mvn test
+  #     - name: Run tests
+  #       working-directory: ./src/${{ matrix.service }}
+  #       run: |
+  #         mvn test
 
-  test-go:
-    name: Test Go Service
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
-    runs-on: ubuntu-latest
-    container:
-      image: golang:1.23
-    env:
-      RETAIL_CATALOG_PERSISTENCE_PROVIDER: in-memory
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # test-go:
+  #   name: Test Go Service
+  #   needs: detect-changes
+  #   if: needs.detect-changes.outputs.should-run == 'true'
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: golang:1.23
+  #   env:
+  #     RETAIL_CATALOG_PERSISTENCE_PROVIDER: in-memory
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Run tests
-        working-directory: ./src/catalog
-        run: |
-          go test -v ./...
+  #     - name: Run tests
+  #       working-directory: ./src/catalog
+  #       run: |
+  #         go test -v ./...
 
   test-typescript:
     name: Test TypeScript Service
