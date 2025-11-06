@@ -23,6 +23,9 @@ on:
       vpn_result:
         description: "VPN result propagated from auth.yaml"
         value: ${{ jobs.auth.outputs.vpn_status }}
+      images_built:
+        description: "Whether any Docker images were built"
+        value: ${{ jobs.build-and-push.outputs.images_built }}
 
 jobs:
   auth:

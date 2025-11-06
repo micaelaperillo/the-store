@@ -23,6 +23,7 @@ jobs:
   deploy:
     name: Deploy Services
     needs: [ci]
+    if: needs.ci.outputs.images_built == 'true'
     uses: ./.github/workflows/helm-deploy.yml
     secrets:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
