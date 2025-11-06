@@ -24,8 +24,6 @@ Características principales:
 - **Microservicios independientes**
 - **Escalabilidad horizontal**
 - **Bases de datos desacopladas**
-- **Integración vía API Gateway**
-
 
 ## Configuración de Secrets en GitHub
 
@@ -47,7 +45,7 @@ El pipeline se define en archivos YAML dentro del directorio `.github/workflows/
 ### Directorios Clave 
 
 - `.github/workflows/`: Contiene los archivos YAML de los Workflows de CI/CD
-- `.charts/`: Contiene los Helm Charts (paquetes de K8s) para cada microservicio.
+- `charts/`: Contiene los Helm Charts (paquetes de K8s) para cada microservicio.
 - `<servicio>/Dockerfile`: El archivo para construir la imagen Docker específica del servicio.
 
 ### Fases del Workflow 
