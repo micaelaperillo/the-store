@@ -28,10 +28,13 @@ jobs:
       images_built: ${{ steps.check.outputs.images_built }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event.before || 'HEAD~1' }}
           filters: |
             cart:
               - 'src/cart/**'
