@@ -32,3 +32,5 @@ devenv.local.nix
 .pre-commit-config.yaml
 .secrets
 bin/act
+
+DEMO.md

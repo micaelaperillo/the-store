@@ -52,6 +52,9 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
 
+          VALIDATE_TYPESCRIPT_ES: false 
+          VALIDATE_TYPESCRIPT_STANDARD: false
+
           VALIDATE_BIOME_LINT: true
           FIX_BIOME_LINT: true
           FIX_BIOME_FORMAT: true
