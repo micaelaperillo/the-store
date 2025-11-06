@@ -33,12 +33,10 @@ jobs:
           echo "${{ secrets.OVPN_CONFIG }}" > client.ovpn
 
       - name: Connect to VPN
-        uses: kota65535/github-openvpn-connect-action@v2
+        uses: kota65535/github-openvpn-connect-action@v3
         with:
           config_file: client.ovpn
-          client_key: ${{ secrets.OVPN_CLIENT_KEY }}
-          tls_auth_key: ${{ secrets.OVPN_TLS_AUTH_KEY }}
-      
+
       - name: Set status
         id: set_status
         if: always() # ensure this runs even if connect fails
