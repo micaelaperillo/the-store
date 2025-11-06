@@ -162,6 +162,20 @@ jobs:
           govulncheck -format sarif ./... > govulncheck.sarif || true
         continue-on-error: true
 
+      - name: Fix SARIF duplicate tags (govulncheck issue)
+        working-directory: ./src/catalog
+        run: |
+          if [ -f govulncheck.sarif ]; then
+            # Install jq if not available
+            if ! command -v jq &> /dev/null; then
+              apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
+            fi
+            # Remove duplicate tags using jq
+            jq '.runs[].tool.driver.rules[]?.properties.tags |= (. | unique)' govulncheck.sarif > govulncheck-fixed.sarif
+            mv govulncheck-fixed.sarif govulncheck.sarif
+          fi
+        continue-on-error: true
+
       - name: Upload govulncheck results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
