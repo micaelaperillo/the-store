@@ -17,69 +17,69 @@
  */
 
 import {
-  Controller,
-  Post,
-  Delete,
-  Get,
-  Param,
-  BadRequestException,
-} from '@nestjs/common';
-import { ChaosService } from './chaos.service';
+	BadRequestException,
+	Controller,
+	Delete,
+	Get,
+	Param,
+	Post,
+} from "@nestjs/common";
+import type { ChaosService } from "./chaos.service";
 
-@Controller('chaos')
+@Controller("chaos")
 export class ChaosController {
-  constructor(private chaosService: ChaosService) {}
+	constructor(private chaosService: ChaosService) {}
 
-  @Post('latency/:ms')
-  setLatency(@Param('ms') ms: string) {
-    const latency = parseInt(ms, 10);
-    if (isNaN(latency) || latency < 0) {
-      throw new BadRequestException(
-        'Invalid latency value. Please provide a positive integer in milliseconds.',
-      );
-    }
-    this.chaosService.setLatency(latency);
-    return { message: `Latency set to ${ms}ms` };
-  }
+	@Post("latency/:ms")
+	setLatency(@Param("ms") ms: string) {
+		const latency = parseInt(ms, 10);
+		if (Number.isNaN(latency) || latency < 0) {
+			throw new BadRequestException(
+				"Invalid latency value. Please provide a positive integer in milliseconds.",
+			);
+		}
+		this.chaosService.setLatency(latency);
+		return { message: `Latency set to ${ms}ms` };
+	}
 
-  @Post('status/:code')
-  setErrorStatus(@Param('code') code: string) {
-    const status = parseInt(code, 10);
-    if (isNaN(status) || status < 100 || status > 599) {
-      throw new BadRequestException(
-        'Invalid HTTP status code. Please provide a valid status code (100-599).',
-      );
-    }
-    this.chaosService.setErrorStatus(status);
-    return { message: `Error status code set to ${code}` };
-  }
+	@Post("status/:code")
+	setErrorStatus(@Param("code") code: string) {
+		const status = parseInt(code, 10);
+		if (Number.isNaN(status) || status < 100 || status > 599) {
+			throw new BadRequestException(
+				"Invalid HTTP status code. Please provide a valid status code (100-599).",
+			);
+		}
+		this.chaosService.setErrorStatus(status);
+		return { message: `Error status code set to ${code}` };
+	}
 
-  @Delete('latency')
-  disableLatency() {
-    this.chaosService.disableLatency();
-    return { message: 'Latency disabled' };
-  }
+	@Delete("latency")
+	disableLatency() {
+		this.chaosService.disableLatency();
+		return { message: "Latency disabled" };
+	}
 
-  @Delete('status')
-  disableErrorStatus() {
-    this.chaosService.disableErrorStatus();
-    return { message: 'Error status disabled' };
-  }
+	@Delete("status")
+	disableErrorStatus() {
+		this.chaosService.disableErrorStatus();
+		return { message: "Error status disabled" };
+	}
 
-  @Get('status')
-  getStatus() {
-    return this.chaosService.getStatus();
-  }
+	@Get("status")
+	getStatus() {
+		return this.chaosService.getStatus();
+	}
 
-  @Post('health')
-  setHealth() {
-    this.chaosService.setHealth(false);
-    return { message: 'Health check endpoint disabled' };
-  }
+	@Post("health")
+	setHealth() {
+		this.chaosService.setHealth(false);
+		return { message: "Health check endpoint disabled" };
+	}
 
-  @Delete('health')
-  enableHealth() {
-    this.chaosService.setHealth(true);
-    return { message: 'Health endpoint enabled' };
-  }
+	@Delete("health")
+	enableHealth() {
+		this.chaosService.setHealth(true);
+		return { message: "Health endpoint enabled" };
+	}
 }

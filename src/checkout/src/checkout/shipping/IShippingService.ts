@@ -16,9 +16,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { CheckoutRequest } from '../models/CheckoutRequest';
-import { ShippingRates } from '../models/ShippingRates';
+import type { CheckoutRequest } from "../models/CheckoutRequest";
+import type { ShippingRates } from "../models/ShippingRates";
 
 export interface IShippingService {
-  getShippingRates(request: CheckoutRequest): Promise<ShippingRates>;
+	getShippingRates(request: CheckoutRequest): Promise<ShippingRates>;
 }

@@ -16,29 +16,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Injectable, NestMiddleware } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
-import { ChaosService } from './chaos.service';
+import { Injectable, type NestMiddleware } from "@nestjs/common";
+import type { NextFunction, Request, Response } from "express";
+import type { ChaosService } from "./chaos.service";
 
 @Injectable()
 export class ChaosMiddleware implements NestMiddleware {
-  constructor(private chaosService: ChaosService) {}
+	constructor(private chaosService: ChaosService) {}
 
-  async use(req: Request, res: Response, next: NextFunction) {
-    if (!this.chaosService.shouldApplyChaos(req.path)) {
-      return next();
-    }
+	async use(req: Request, res: Response, next: NextFunction) {
+		if (!this.chaosService.shouldApplyChaos(req.path)) {
+			return next();
+		}
 
-    const latencyDelay = this.chaosService.getLatencyDelay();
-    if (latencyDelay) {
-      await new Promise((resolve) => setTimeout(resolve, latencyDelay));
-    }
+		const latencyDelay = this.chaosService.getLatencyDelay();
+		if (latencyDelay) {
+			await new Promise((resolve) => setTimeout(resolve, latencyDelay));
+		}
 
-    const errorStatus = this.chaosService.getErrorStatus();
-    if (errorStatus) {
-      return res.sendStatus(errorStatus);
-    }
+		const errorStatus = this.chaosService.getErrorStatus();
+		if (errorStatus) {
+			return res.sendStatus(errorStatus);
+		}
 
-    next();
-  }
+		next();
+	}
 }

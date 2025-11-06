@@ -16,7 +16,8 @@ func TestCatalogList(t *testing.T) {
 	assert.Equal(t, http.StatusOK, writer.Code)
 
 	var response []model.Product
-	json.Unmarshal(writer.Body.Bytes(), &response)
+	err := json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 10, len(response))
 }
@@ -27,7 +28,8 @@ func TestCatalogProduct(t *testing.T) {
 	assert.Equal(t, http.StatusOK, writer.Code)
 
 	var response model.Product
-	json.Unmarshal(writer.Body.Bytes(), &response)
+	err := json.Unmarshal(writer.Body.Bytes(), &response)
+	assert.NoError(t, err)
 
 	assert.Equal(t, "Temporal Tickstopper", response.Name)
 }

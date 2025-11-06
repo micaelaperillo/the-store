@@ -17,7 +17,6 @@
 package api
 
 import (
-	
 	"context"
 
 	"github.com/aws-containers/retail-store-sample-app/catalog/model"

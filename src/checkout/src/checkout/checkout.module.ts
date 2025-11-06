@@ -16,73 +16,73 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Logger, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CheckoutController } from './checkout.controller';
-import { CheckoutService } from './checkout.service';
-import { MockOrdersService, HttpOrdersService } from './orders';
+import { Logger, Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { CheckoutController } from "./checkout.controller";
+import { CheckoutService } from "./checkout.service";
+import { HttpOrdersService, MockOrdersService } from "./orders";
 import {
-  InMemoryCheckoutRepository,
-  ICheckoutRepository,
-  RedisCheckoutRepository,
-} from './repositories';
-import { MockShippingService } from './shipping';
+	type ICheckoutRepository,
+	InMemoryCheckoutRepository,
+	RedisCheckoutRepository,
+} from "./repositories";
+import { MockShippingService } from "./shipping";
 
 const orderServiceProvider = {
-  provide: 'OrdersService',
-  useFactory: (configService: ConfigService) => {
-    const ordersEndpoint = configService.get('endpoints.orders');
-    if (ordersEndpoint) {
-      return new HttpOrdersService(ordersEndpoint);
-    }
-    return new MockOrdersService();
-  },
-  inject: [ConfigService],
+	inject: [ConfigService],
+	provide: "OrdersService",
+	useFactory: (configService: ConfigService) => {
+		const ordersEndpoint = configService.get("endpoints.orders");
+		if (ordersEndpoint) {
+			return new HttpOrdersService(ordersEndpoint);
+		}
+		return new MockOrdersService();
+	},
 };
 
 const shippingServiceProvider = {
-  provide: 'ShippingService',
-  useFactory: (configService: ConfigService) => {
-    return new MockShippingService(configService.get('shipping.prefix'));
-  },
-  inject: [ConfigService],
+	inject: [ConfigService],
+	provide: "ShippingService",
+	useFactory: (configService: ConfigService) => {
+		return new MockShippingService(configService.get("shipping.prefix"));
+	},
 };
 
 const repositoryProvider = {
-  provide: 'CheckoutRepository',
-  useFactory: (configService: ConfigService) => {
-    const persistenceProvider = configService.get('persistence.provider');
-    const redisUrl = configService.get('persistence.redis.url');
-    let redisReaderUrl = configService.get('persistence.redis.reader.url');
+	inject: [ConfigService],
+	provide: "CheckoutRepository",
+	useFactory: (configService: ConfigService) => {
+		const persistenceProvider = configService.get("persistence.provider");
+		const redisUrl = configService.get("persistence.redis.url");
+		let redisReaderUrl = configService.get("persistence.redis.reader.url");
 
-    if (!redisReaderUrl) {
-      redisReaderUrl = redisUrl;
-    }
+		if (!redisReaderUrl) {
+			redisReaderUrl = redisUrl;
+		}
 
-    let repository: ICheckoutRepository;
-    const logger = new Logger();
+		let repository: ICheckoutRepository;
+		const logger = new Logger();
 
-    if (persistenceProvider === 'redis') {
-      logger.log('Using redis persistence');
-      repository = new RedisCheckoutRepository(redisUrl, redisReaderUrl);
-    } else {
-      logger.log('Using in-memory persistence');
-      repository = new InMemoryCheckoutRepository();
-    }
+		if (persistenceProvider === "redis") {
+			logger.log("Using redis persistence");
+			repository = new RedisCheckoutRepository(redisUrl, redisReaderUrl);
+		} else {
+			logger.log("Using in-memory persistence");
+			repository = new InMemoryCheckoutRepository();
+		}
 
-    return repository;
-  },
-  inject: [ConfigService],
+		return repository;
+	},
 };
 
 @Module({
-  imports: [ConfigModule],
-  controllers: [CheckoutController],
-  providers: [
-    orderServiceProvider,
-    shippingServiceProvider,
-    repositoryProvider,
-    CheckoutService,
-  ],
+	controllers: [CheckoutController],
+	imports: [ConfigModule],
+	providers: [
+		orderServiceProvider,
+		shippingServiceProvider,
+		repositoryProvider,
+		CheckoutService,
+	],
 })
 export class CheckoutModule {}

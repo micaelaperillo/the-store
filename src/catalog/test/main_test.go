@@ -58,7 +58,9 @@ func TestMain(m *testing.M) {
 	gin.SetMode(gin.TestMode)
 	exitCode := m.Run()
 
-	container.Terminate(ctx)
+	if err := container.Terminate(ctx); err != nil {
+		fmt.Printf("Failed to terminate container: %v\n", err)
+	}
 	os.Exit(exitCode)
 }
 

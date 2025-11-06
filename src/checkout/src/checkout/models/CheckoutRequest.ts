@@ -16,27 +16,26 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Type } from 'class-transformer';
-import { ValidateNested, IsOptional, IsString } from 'class-validator';
-
-import { ShippingAddress } from './ShippingAddress';
-import { ApiProperty } from '@nestjs/swagger';
-import { ItemRequest } from './ItemRequest';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsOptional, IsString, ValidateNested } from "class-validator";
+import { ItemRequest } from "./ItemRequest";
+import { ShippingAddress } from "./ShippingAddress";
 
 export class CheckoutRequest {
-  @ValidateNested({ each: true })
-  @Type(() => ItemRequest)
-  @ApiProperty({ type: [ItemRequest] })
-  items: ItemRequest[];
+	@ValidateNested({ each: true })
+	@Type(() => ItemRequest)
+	@ApiProperty({ type: [ItemRequest] })
+	items: ItemRequest[];
 
-  @ValidateNested()
-  @Type(() => ShippingAddress)
-  @IsOptional()
-  @ApiProperty()
-  shippingAddress: ShippingAddress;
+	@ValidateNested()
+	@Type(() => ShippingAddress)
+	@IsOptional()
+	@ApiProperty()
+	shippingAddress: ShippingAddress;
 
-  @IsString()
-  @IsOptional()
-  @ApiProperty()
-  deliveryOptionToken: string;
+	@IsString()
+	@IsOptional()
+	@ApiProperty()
+	deliveryOptionToken: string;
 }

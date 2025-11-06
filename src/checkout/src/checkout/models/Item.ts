@@ -16,10 +16,10 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
-import { ItemRequest } from './ItemRequest';
+import { ApiProperty } from "@nestjs/swagger";
+import { ItemRequest } from "./ItemRequest";
 
 export class Item extends ItemRequest {
-  @ApiProperty({ type: 'integer' })
-  totalCost: number;
+	@ApiProperty({ type: "integer" })
+	totalCost: number;
 }

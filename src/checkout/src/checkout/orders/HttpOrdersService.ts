@@ -16,27 +16,27 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Checkout } from '../models/Checkout';
-import { ExistingOrder, OrdersApi } from '../../clients/orders/api';
-import { IOrdersService } from './IOrdersService';
+import { type ExistingOrder, OrdersApi } from "../../clients/orders/api";
+import type { Checkout } from "../models/Checkout";
+import type { IOrdersService } from "./IOrdersService";
 
 export class HttpOrdersService implements IOrdersService {
-  private ordersApi: OrdersApi;
+	private ordersApi: OrdersApi;
 
-  constructor(endpoint: string) {
-    this.ordersApi = new OrdersApi(endpoint);
-  }
+	constructor(endpoint: string) {
+		this.ordersApi = new OrdersApi(endpoint);
+	}
 
-  async create(checkout: Checkout): Promise<ExistingOrder> {
-    return this.ordersApi
-      .createOrder({
-        email: checkout.shippingAddress.email,
-        firstName: 'John',
-        lastName: 'Doe',
-        items: checkout.items,
-      })
-      .then((value) => {
-        return value.body;
-      });
-  }
+	async create(checkout: Checkout): Promise<ExistingOrder> {
+		return this.ordersApi
+			.createOrder({
+				email: checkout.shippingAddress.email,
+				firstName: "John",
+				items: checkout.items,
+				lastName: "Doe",
+			})
+			.then((value) => {
+				return value.body;
+			});
+	}
 }

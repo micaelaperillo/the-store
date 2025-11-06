@@ -16,30 +16,30 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Injectable } from '@nestjs/common';
-import { ICheckoutRepository } from './ICheckoutRepository';
+import { Injectable } from "@nestjs/common";
+import type { ICheckoutRepository } from "./ICheckoutRepository";
 
 @Injectable()
 export class InMemoryCheckoutRepository implements ICheckoutRepository {
-  map = new Map<string, string>();
+	map = new Map<string, string>();
 
-  async get(key: string): Promise<string> {
-    if (this.map.has(key)) {
-      return Promise.resolve(this.map.get(key));
-    }
+	async get(key: string): Promise<string> {
+		if (this.map.has(key)) {
+			return Promise.resolve(this.map.get(key));
+		}
 
-    return null;
-  }
+		return null;
+	}
 
-  async set(key: string, value: string): Promise<string> {
-    this.map.set(key, value);
+	async set(key: string, value: string): Promise<string> {
+		this.map.set(key, value);
 
-    return Promise.resolve(value);
-  }
+		return Promise.resolve(value);
+	}
 
-  async remove(key: string): Promise<void> {
-    this.map.delete(key);
+	async remove(key: string): Promise<void> {
+		this.map.delete(key);
 
-    return Promise.resolve(null);
-  }
+		return Promise.resolve(null);
+	}
 }

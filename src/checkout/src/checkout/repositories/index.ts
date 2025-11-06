@@ -16,6 +16,6 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export { RedisCheckoutRepository } from './RedisCheckoutRepository';
-export { InMemoryCheckoutRepository } from './InMemoryCheckoutRepository';
-export { ICheckoutRepository } from './ICheckoutRepository';
+export { ICheckoutRepository } from "./ICheckoutRepository";
+export { InMemoryCheckoutRepository } from "./InMemoryCheckoutRepository";
+export { RedisCheckoutRepository } from "./RedisCheckoutRepository";
