@@ -5,6 +5,8 @@ on:
     secrets:
         DOCKERHUB_USERNAME:
           required: true
+        KUBECONFIG:
+          required: true
 
 jobs:
   detect-changes:
