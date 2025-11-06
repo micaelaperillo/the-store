@@ -35,9 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.changed != '[]'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.changed) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -65,25 +62,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Clean up old releases thoroughly
-        env:
-          KUBECONFIG: ${{ github.workspace }}/kubeconfig
-        run: |
-          # Uninstall old release names
-          helm uninstall the-store-chart -n default 2>/dev/null || true
-          helm uninstall the-store -n default 2>/dev/null || true
-          
-          # Clean up any orphaned Helm secrets
-          kubectl delete secret -n default -l owner=helm,name=the-store 2>/dev/null || true
-          kubectl delete secret -n default -l owner=helm,name=the-store-chart 2>/dev/null || true
-          
-          # Wait a moment for cleanup
-          sleep 5
-        continue-on-error: true
-
-
-      # tendria que hacerse solo si no esta creado (chequeable con status(?))
-      # verificar tema namespace
       - name: Deploy services
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
