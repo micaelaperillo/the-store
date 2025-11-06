@@ -3,6 +3,11 @@ serviceAccount:
   labels:
     helmChart: carts-1.2.4
 
+image:
+  repository: the-store-cart
+  tag: latest
+  pullPolicy: IfNotPresent
+
 service:
   name: carts
   type: ClusterIP

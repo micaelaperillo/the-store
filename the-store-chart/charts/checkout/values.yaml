@@ -3,6 +3,11 @@ serviceAccount:
   labels:
     helmChart: checkout-1.2.4
 
+image:
+  repository: the-store-checkout
+  tag: latest
+  pullPolicy: IfNotPresent
+
 service:
   name: checkout
   type: ClusterIP
