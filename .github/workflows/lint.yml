@@ -114,7 +114,8 @@ jobs:
 
           VALIDATE_GO: true
           FIX_GO_MODULES: true
-          GO_GOLANGCI_LINT_CONFIG_FILE: ".lint/.golangci.yml"
+          LINTER_RULES_PATH: ".lint"
+          GO_GOLANGCI_LINT_CONFIG_FILE: ".golangci.yml"
 
           FILTER_REGEX_INCLUDE: "src/catalog/.*"
 
@@ -167,7 +168,8 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/cart/.*"
 
   lint-java-orders:
@@ -188,7 +190,8 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/orders/.*"
 
   lint-java-ui:
@@ -209,5 +212,6 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/ui/.*"
