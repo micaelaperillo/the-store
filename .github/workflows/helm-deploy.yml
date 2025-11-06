@@ -54,7 +54,9 @@ jobs:
         uses: azure/setup-kubectl@v4
 
       - name: Create kubeconfig file
-        run: echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
+          chmod 600 ${{ github.workspace }}/kubeconfig
         
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -72,17 +74,16 @@ jobs:
         run: |
           cd the-store-chart 
           helm dependency build
-          helm upgrade --install the-store-chart . \
-          --set cart.image.repository=$DOCKERHUB_USERNAME/the-store-cart \
-          --set catalog.image.repository=$DOCKERHUB_USERNAME/the-store-catalog \
-          --set checkout.image.repository=$DOCKERHUB_USERNAME/the-store-checkout \
-          --set orders.image.repository=$DOCKERHUB_USERNAME/the-store-orders \
-          --set ui.image.repository=$DOCKERHUB_USERNAME/the-store-ui \
-          --set cart.image.tag=latest \
-          --set catalog.image.tag=latest \
-          --set checkout.image.tag=latest \
-          --set orders.image.tag=latest \
-          --set ui.image.tag=latest \
-          --namespace default \
-          --kubeconfig $KUBECONFIG
-          --create-namespace \
+          helm upgrade --install the-store . \
+            --set cart.image.repository=$DOCKERHUB_USERNAME/the-store-cart \
+            --set catalog.image.repository=$DOCKERHUB_USERNAME/the-store-catalog \
+            --set checkout.image.repository=$DOCKERHUB_USERNAME/the-store-checkout \
+            --set orders.image.repository=$DOCKERHUB_USERNAME/the-store-orders \
+            --set ui.image.repository=$DOCKERHUB_USERNAME/the-store-ui \
+            --set cart.image.tag=latest \
+            --set catalog.image.tag=latest \
+            --set checkout.image.tag=latest \
+            --set orders.image.tag=latest \
+            --set ui.image.tag=latest \
+            --namespace default \
+            --create-namespace
