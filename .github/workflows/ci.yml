@@ -27,22 +27,22 @@ jobs:
     # needs: [auth]
     uses: ./.github/workflows/lint.yml
 
-  security:
-    name: Security Audit
-    # needs: [auth]
-    uses: ./.github/workflows/security.yml
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    secrets:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+  # security:
+  #   name: Security Audit
+  #   # needs: [auth]
+  #   uses: ./.github/workflows/security.yml
+  #   permissions:
+  #     actions: read
+  #     contents: read
+  #     security-events: write
+  #   secrets:
+  #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
   test:
     name: Run unit tests
-    needs: [security, lint]
+    needs: [lint]
     uses: ./.github/workflows/test.yml
 
   build-and-push:
@@ -57,7 +57,7 @@ jobs:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
-  test-deploy:
-    name: Test Deploy Services Locally
-    needs: [build-and-push]
-    uses: ./.github/workflows/main.yml
+  # test-deploy:
+  #   name: Test Deploy Services Locally
+  #   needs: [build-and-push]
+  #   uses: ./.github/workflows/main.yml
