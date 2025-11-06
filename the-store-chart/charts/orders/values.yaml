@@ -6,7 +6,7 @@ serviceAccount:
 image:
   repository: the-store-orders
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   name: orders
