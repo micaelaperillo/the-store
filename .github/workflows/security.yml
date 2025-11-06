@@ -16,37 +16,83 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      should-run: ${{ steps.check.outputs.should-run }}
+      cart: ${{ steps.check.outputs.cart }}
+      orders: ${{ steps.check.outputs.orders }}
+      ui: ${{ steps.check.outputs.ui }}
+      catalog: ${{ steps.check.outputs.catalog }}
+      checkout: ${{ steps.check.outputs.checkout }}
+      load-generator: ${{ steps.check.outputs.load-generator }}
+      e2e: ${{ steps.check.outputs.e2e }}
+      global-scans: ${{ steps.check.outputs.global-scans }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Detect dependency changes
+      - name: Detect dependency changes per service
         if: github.event_name != 'schedule'
         uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event.before || 'HEAD~1' }}
           filters: |
-            dependencies:
-              - 'src/*/pom.xml'
-              - 'src/*/package.json'
-              - 'src/*/yarn.lock'
-              - 'src/*/go.mod'
-              - 'src/*/go.sum'
+            cart:
+              - 'src/cart/pom.xml'
+            orders:
+              - 'src/orders/pom.xml'
+            ui:
+              - 'src/ui/pom.xml'
+            catalog:
+              - 'src/catalog/go.mod'
+              - 'src/catalog/go.sum'
+            checkout:
+              - 'src/checkout/package.json'
+              - 'src/checkout/yarn.lock'
+            load-generator:
+              - 'src/load-generator/package.json'
+            e2e:
+              - 'src/e2e/package.json'
+            workflow:
               - '.github/workflows/security.yml'
 
-      - name: Set should-run output
+      - name: Set outputs
         id: check
         run: |
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
-            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "cart=true" >> $GITHUB_OUTPUT
+            echo "orders=true" >> $GITHUB_OUTPUT
+            echo "ui=true" >> $GITHUB_OUTPUT
+            echo "catalog=true" >> $GITHUB_OUTPUT
+            echo "checkout=true" >> $GITHUB_OUTPUT
+            echo "load-generator=true" >> $GITHUB_OUTPUT
+            echo "e2e=true" >> $GITHUB_OUTPUT
+            echo "global-scans=true" >> $GITHUB_OUTPUT
           else
-            echo "should-run=${{ steps.filter.outputs.dependencies }}" >> $GITHUB_OUTPUT
+            echo "cart=${{ steps.filter.outputs.cart }}" >> $GITHUB_OUTPUT
+            echo "orders=${{ steps.filter.outputs.orders }}" >> $GITHUB_OUTPUT
+            echo "ui=${{ steps.filter.outputs.ui }}" >> $GITHUB_OUTPUT
+            echo "catalog=${{ steps.filter.outputs.catalog }}" >> $GITHUB_OUTPUT
+            echo "checkout=${{ steps.filter.outputs.checkout }}" >> $GITHUB_OUTPUT
+            echo "load-generator=${{ steps.filter.outputs.load-generator }}" >> $GITHUB_OUTPUT
+            echo "e2e=${{ steps.filter.outputs.e2e }}" >> $GITHUB_OUTPUT
+            if [[ "${{ steps.filter.outputs.workflow }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.cart }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.orders }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.ui }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.catalog }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.checkout }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.load-generator }}" == "true" ]] || \
+              [[ "${{ steps.filter.outputs.e2e }}" == "true" ]]; then
+              echo "global-scans=true" >> $GITHUB_OUTPUT
+            else
+              echo "global-scans=false" >> $GITHUB_OUTPUT
+            fi
           fi
 
   gitleaks:
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.global-scans == 'true'
     name: Secrets scan
     runs-on: ubuntu-latest
     permissions:
@@ -75,7 +121,7 @@ jobs:
     name: Dependency Review
     needs: detect-changes
     runs-on: ubuntu-latest
-    if: needs.detect-changes.outputs.should-run == 'true' && github.event_name == 'pull_request' && !github.event.act
+    if: needs.detect-changes.outputs.global-scans == 'true' && github.event_name == 'pull_request' && !github.event.act
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,34 +131,28 @@ jobs:
         with:
           fail-on-severity: moderate
 
-  maven-dependency-scan:
-    name: Maven Dependency Analysis
+  maven-scan-cart:
+    name: Maven Dependency Analysis - Cart
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.cart == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
     container:
       image: maven:3.9-eclipse-temurin-21
-    strategy:
-      matrix:
-        service:
-          - cart
-          - orders
-          - ui
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Analyze Maven dependencies
-        working-directory: ./src/${{ matrix.service }}
+        working-directory: ./src/cart
         run: |
           mvn dependency:tree -DoutputFile=dependency-tree.txt
           mvn versions:display-dependency-updates
 
       - name: Check for vulnerable dependencies
-        working-directory: ./src/${{ matrix.service }}
+        working-directory: ./src/cart
         run: |
           mvn org.owasp:dependency-check-maven:check \
             -DfailBuildOnCVSS=7 \
@@ -126,20 +166,110 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: ./src/${{ matrix.service }}/target/dependency-check-report.sarif
-          category: owasp-${{ matrix.service }}
+          sarif_file: ./src/cart/target/dependency-check-report.sarif
+          category: owasp-cart
 
       - name: Upload dependency reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: maven-dependency-${{ matrix.service }}
-          path: ./src/${{ matrix.service }}/target/dependency-check-report.html
+          name: maven-dependency-cart
+          path: ./src/cart/target/dependency-check-report.html
+
+  maven-scan-orders:
+    name: Maven Dependency Analysis - Orders
+    needs: detect-changes
+    if: needs.detect-changes.outputs.orders == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    container:
+      image: maven:3.9-eclipse-temurin-21
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze Maven dependencies
+        working-directory: ./src/orders
+        run: |
+          mvn dependency:tree -DoutputFile=dependency-tree.txt
+          mvn versions:display-dependency-updates
+
+      - name: Check for vulnerable dependencies
+        working-directory: ./src/orders
+        run: |
+          mvn org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7 \
+            -DnvdApiKey=${NVD_API_KEY} \
+            -Dformats=HTML,SARIF || true
+        continue-on-error: true
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload OWASP results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ./src/orders/target/dependency-check-report.sarif
+          category: owasp-orders
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maven-dependency-orders
+          path: ./src/orders/target/dependency-check-report.html
+
+  maven-scan-ui:
+    name: Maven Dependency Analysis - UI
+    needs: detect-changes
+    if: needs.detect-changes.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    container:
+      image: maven:3.9-eclipse-temurin-21
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Analyze Maven dependencies
+        working-directory: ./src/ui
+        run: |
+          mvn dependency:tree -DoutputFile=dependency-tree.txt
+          mvn versions:display-dependency-updates
+
+      - name: Check for vulnerable dependencies
+        working-directory: ./src/ui
+        run: |
+          mvn org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7 \
+            -DnvdApiKey=${NVD_API_KEY} \
+            -Dformats=HTML,SARIF || true
+        continue-on-error: true
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload OWASP results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ./src/ui/target/dependency-check-report.sarif
+          category: owasp-ui
+
+      - name: Upload dependency reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maven-dependency-ui
+          path: ./src/ui/target/dependency-check-report.html
 
   go-dependency-scan:
-    name: Go Dependency Analysis
+    name: Go Dependency Analysis - Catalog
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.catalog == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -162,11 +292,9 @@ jobs:
         working-directory: ./src/catalog
         run: |
           if [ -f govulncheck.sarif ]; then
-            # Install jq if not available
             if ! command -v jq &> /dev/null; then
               apt-get update -qq && apt-get install -y -qq jq > /dev/null 2>&1
             fi
-            # Remove duplicate tags using jq
             jq '.runs[].tool.driver.rules[]?.properties.tags |= (. | unique)' govulncheck.sarif > govulncheck-fixed.sarif
             mv govulncheck-fixed.sarif govulncheck.sarif
           fi
@@ -179,32 +307,74 @@ jobs:
           sarif_file: ./src/catalog/govulncheck.sarif
           category: govulncheck
 
-  node-dependency-scan:
-    name: Node.js Dependency Analysis
+  node-scan-checkout:
+    name: Node.js Dependency Analysis - Checkout
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.checkout == 'true'
     runs-on: ubuntu-latest
     container:
       image: node:20-alpine
-    strategy:
-      matrix:
-        service:
-          - checkout
-          - load-generator
-          - e2e
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Generate lock file if missing
-        working-directory: ./src/${{ matrix.service }}
+        working-directory: ./src/checkout
         run: |
           if [ ! -f package-lock.json ]; then
             npm install --package-lock-only
           fi
 
       - name: Audit dependencies without installing
-        working-directory: ./src/${{ matrix.service }}
+        working-directory: ./src/checkout
+        run: |
+          npm audit --audit-level=moderate
+        continue-on-error: true
+
+  node-scan-load-generator:
+    name: Node.js Dependency Analysis - Load Generator
+    needs: detect-changes
+    if: needs.detect-changes.outputs.load-generator == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: node:20-alpine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate lock file if missing
+        working-directory: ./src/load-generator
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only
+          fi
+
+      - name: Audit dependencies without installing
+        working-directory: ./src/load-generator
+        run: |
+          npm audit --audit-level=moderate
+        continue-on-error: true
+
+  node-scan-e2e:
+    name: Node.js Dependency Analysis - E2E
+    needs: detect-changes
+    if: needs.detect-changes.outputs.e2e == 'true'
+    runs-on: ubuntu-latest
+    container:
+      image: node:20-alpine
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate lock file if missing
+        working-directory: ./src/e2e
+        run: |
+          if [ ! -f package-lock.json ]; then
+            npm install --package-lock-only
+          fi
+
+      - name: Audit dependencies without installing
+        working-directory: ./src/e2e
         run: |
           npm audit --audit-level=moderate
         continue-on-error: true
@@ -212,7 +382,7 @@ jobs:
   docker-scout:
     name: Docker Scout Analysis
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.global-scans == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -257,7 +427,7 @@ jobs:
   trivy-scan:
     name: Trivy Container Scan
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.global-scans == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -297,7 +467,7 @@ jobs:
   iac-security:
     name: IaC Security Scan
     needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    if: needs.detect-changes.outputs.global-scans == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -323,7 +493,7 @@ jobs:
     name: CodeQL Analysis
     needs: detect-changes
     runs-on: ubuntu-latest
-    if: needs.detect-changes.outputs.should-run == 'true' && !github.event.act
+    if: needs.detect-changes.outputs.global-scans == 'true' && !github.event.act
     permissions:
       actions: read
       contents: read
