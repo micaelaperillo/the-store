@@ -65,6 +65,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Clean up old release if exists
+        env:
+          KUBECONFIG: ${{ github.workspace }}/kubeconfig
+        run: |
+          # Try to uninstall old release, ignore error if it doesn't exist
+          helm uninstall the-store-chart -n default || true
+        continue-on-error: true
+
       # tendria que hacerse solo si no esta creado (chequeable con status(?))
       # verificar tema namespace
       - name: Deploy services
