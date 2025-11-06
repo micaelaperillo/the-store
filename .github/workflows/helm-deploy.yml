@@ -70,6 +70,7 @@ jobs:
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
           cd the-store-chart 
+          helm dependency build
           helm upgrade --install the-store-chart . \
           --set image.tag=$DOCKERHUB_USERNAME/the-store:latest \
           --namespace default \
