@@ -77,6 +77,3 @@ jobs:
           --set image.tag=latest \
           --namespace default \
           --kubeconfig $KUBECONFIG
-
-
-
