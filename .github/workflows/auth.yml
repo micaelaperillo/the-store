@@ -31,8 +31,7 @@ jobs:
       - name: Create OVPN config file
         run: |
           echo "${{ secrets.OVPN_CONFIG }}" > client.ovpn
-          chmod 600 client.ovpn
-          
+
       - name: Connect to VPN
         uses: kota65535/github-openvpn-connect-action@v2
         with:
