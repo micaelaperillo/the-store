@@ -21,6 +21,7 @@ import { ConfigService } from '@nestjs/config';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { ChaosHealthIndicator } from './chaos/chaos.health';
 
+
 @Controller()
 export class AppController {
   constructor(
