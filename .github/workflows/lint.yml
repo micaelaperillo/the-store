@@ -24,7 +24,7 @@ jobs:
               - 'src/orders/**'
               - 'src/ui/**'
               - '.lint/**'
-              - '.github/workflows/lint.yml''
+              - '.github/workflows/lint.yml'
 
       - name: Set should-run output
         id: check
