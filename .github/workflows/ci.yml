@@ -13,6 +13,12 @@ on:
         required: true
       NVD_API_KEY:
         required: true
+      OVPN_CONFIG:
+        required: true
+      OVPN_CLIENT_KEY:
+        required: true
+      OVPN_TLS_AUTH_KEY:
+        required: true
     outputs:
       vpn_result:
         description: "VPN result propagated from auth.yaml"

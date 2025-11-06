@@ -17,7 +17,7 @@ jobs:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
       NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
-  deploy: 
+  deploy:
     name: Deploy Services
     needs: [ci]
     uses: ./.github/workflows/helm-deploy.yml
@@ -26,5 +26,8 @@ jobs:
       KUBECONFIG: ${{ secrets.KUBECONFIG }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}
+      OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+      OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
     with:
       kubeconfig_name: ${{ needs.ci.outputs.vpn_result }}
