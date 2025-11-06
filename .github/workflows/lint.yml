@@ -71,6 +71,16 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Set up Go environment 
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+
+      - name: Download Go modules
+        run: |
+          cd src/catalog # Assuming main.go is in src/catalog
+          go mod download
+
       - name: Run Go linter
         uses: github/super-linter@v4
         env:
