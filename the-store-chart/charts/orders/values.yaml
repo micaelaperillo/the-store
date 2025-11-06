@@ -1,7 +1,7 @@
 serviceAccount:
   name: orders
   labels:
-    helm-chart: orders-1.2.4
+    helmChart: orders-1.2.4
 
 service:
   name: orders

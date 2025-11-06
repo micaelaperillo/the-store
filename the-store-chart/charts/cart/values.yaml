@@ -1,7 +1,7 @@
 serviceAccount:
   name: carts
   labels:
-    helm-chart: carts-1.2.4
+    helmChart: carts-1.2.4
 
 service:
   name: carts

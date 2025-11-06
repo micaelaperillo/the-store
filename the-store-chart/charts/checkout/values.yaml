@@ -1,7 +1,7 @@
 serviceAccount:
   name: checkout
   labels:
-    helm-chart: checkout-1.2.4
+    helmChart: checkout-1.2.4
 
 service:
   name: checkout

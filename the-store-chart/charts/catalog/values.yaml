@@ -1,7 +1,7 @@
 serviceAccount:
   name: catalog
   labels:
-    helm-chart: catalog-1.2.4
+    helmChart: catalog-1.2.4
 
 service:
   name: catalog

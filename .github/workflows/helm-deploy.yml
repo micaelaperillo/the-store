@@ -67,12 +67,14 @@ jobs:
       # verificar tema namespace
       - name: Deploy services
         env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
           cd the-store-chart 
           helm dependency build
           helm upgrade --install the-store-chart . \
-          --set image.tag=$DOCKERHUB_USERNAME/the-store:latest \
+          --set image.repository=$DOCKERHUB_USERNAME/the-store \
+          --set image.tag=latest \
           --namespace default \
           --kubeconfig $KUBECONFIG
 

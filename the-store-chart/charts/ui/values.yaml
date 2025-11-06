@@ -1,7 +1,7 @@
 serviceAccount:
   name: ui
   labels:
-    helm-chart: ui-1.2.4
+    helmChart: ui-1.2.4
 
 service:
   name: ui
