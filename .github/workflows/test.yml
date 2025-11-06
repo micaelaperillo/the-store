@@ -43,6 +43,10 @@ jobs:
           - cart
           - orders
           - ui
+    env:
+      RETAIL_CART_PERSISTENCE_PROVIDER: in-memory
+      RETAIL_ORDERS_PERSISTENCE_PROVIDER: in-memory
+      RETAIL_ORDERS_MESSAGING_PROVIDER: in-memory
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,6 +63,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: golang:1.23
+    env:
+      RETAIL_CATALOG_PERSISTENCE_PROVIDER: in-memory
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -75,6 +81,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: node:20-alpine
+    env:
+      RETAIL_CHECKOUT_PERSISTENCE_PROVIDER: in-memory
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
