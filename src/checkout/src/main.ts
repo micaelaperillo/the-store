@@ -28,7 +28,12 @@ async function bootstrap() {
   await otelSDK.start();
 
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe())
+
+
+
+
+  
 
   const config = new DocumentBuilder()
     .setTitle('Checkout service')
