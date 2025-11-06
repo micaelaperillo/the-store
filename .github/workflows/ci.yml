@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: ["main", "development"]
   workflow_call:
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      NVD_API_KEY:
+        required: true
 
 jobs:
   # auth:
