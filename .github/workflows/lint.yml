@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  detect-changes:
+  detect-typescript-changes:
     runs-on: ubuntu-latest
     outputs:
       should-run: ${{ steps.check.outputs.should-run }}
@@ -14,30 +14,25 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect source code changes
+      - name: Detect TypeScript changes
         uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
-            sources:
+            typescript:
               - 'src/checkout/**'
-              - 'src/catalog/**'
-              - 'src/cart/**'
-              - 'src/orders/**'
-              - 'src/ui/**'
-              - '.lint/**'
+              - '.lint/biome.json'
               - '.github/workflows/lint.yml'
 
       - name: Set should-run output
         id: check
         run: |
-          echo "should-run=${{ steps.filter.outputs.sources }}" >> $GITHUB_OUTPUT
+          echo "should-run=${{ steps.filter.outputs.typescript }}" >> $GITHUB_OUTPUT
 
-  # === TypeScript ===
   lint-biome:
     name: Lint Checkout (Biome)
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    needs: detect-typescript-changes
+    if: needs.detect-typescript-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -52,7 +47,7 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
 
-          VALIDATE_TYPESCRIPT_ES: false 
+          VALIDATE_TYPESCRIPT_ES: false
           VALIDATE_TYPESCRIPT_STANDARD: false
 
           VALIDATE_BIOME_LINT: true
@@ -62,11 +57,35 @@ jobs:
 
           FILTER_REGEX_INCLUDE: "src/checkout/.*"
 
-  # === Go ===
+  detect-go-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Go changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            go:
+              - 'src/catalog/**'
+              - '.lint/.golangci.yml'
+              - '.github/workflows/lint.yml'
+
+      - name: Set should-run output
+        id: check
+        run: |
+          echo "should-run=${{ steps.filter.outputs.go }}" >> $GITHUB_OUTPUT
+
   lint-go:
     name: Lint Catalog (Go)
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+    needs: detect-go-changes
+    if: needs.detect-go-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -74,10 +93,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Go environment 
+      - name: Set up Go environment
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.0'
+          go-version: "1.23.0"
 
       - name: Download Go modules
         run: |
@@ -97,18 +116,41 @@ jobs:
 
           FILTER_REGEX_INCLUDE: "src/catalog/.*"
 
-  # === Java ===
-  lint-java:
-    name: Lint Java Services (Checkstyle)
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should-run == 'true'
+  detect-java-changes:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service:
-          - src/ui
-          - src/cart
-          - src/orders
+    outputs:
+      cart: ${{ steps.filter.outputs.cart }}
+      orders: ${{ steps.filter.outputs.orders }}
+      ui: ${{ steps.filter.outputs.ui }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Java service changes
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            cart:
+              - 'src/cart/**'
+              - '.lint/checkstyle.xml'
+              - '.github/workflows/lint.yml'
+            orders:
+              - 'src/orders/**'
+              - '.lint/checkstyle.xml'
+              - '.github/workflows/lint.yml'
+            ui:
+              - 'src/ui/**'
+              - '.lint/checkstyle.xml'
+              - '.github/workflows/lint.yml'
+
+  lint-java-cart:
+    name: Lint Cart (Checkstyle)
+    needs: detect-java-changes
+    if: needs.detect-java-changes.outputs.cart == 'true'
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -121,11 +163,51 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
-
           VALIDATE_JAVA: true
           JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          FILTER_REGEX_INCLUDE: "src/cart/.*"
 
-          FILTER_REGEX_INCLUDE: "${{ matrix.service }}/.*"
+  lint-java-orders:
+    name: Lint Orders (Checkstyle)
+    needs: detect-java-changes
+    if: needs.detect-java-changes.outputs.orders == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Checkstyle linter
+        uses: github/super-linter@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVA: true
+          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          FILTER_REGEX_INCLUDE: "src/orders/.*"
+
+  lint-java-ui:
+    name: Lint UI (Checkstyle)
+    needs: detect-java-changes
+    if: needs.detect-java-changes.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Checkstyle linter
+        uses: github/super-linter@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BRANCH: main
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVA: true
+          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          FILTER_REGEX_INCLUDE: "src/ui/.*"
 
   auto-fix-biome:
     needs: lint-biome
