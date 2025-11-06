@@ -63,6 +63,8 @@ import (
 func main() {
 	ctx := context.Background()
 
+	var unnecessaryVar = "Lint fail"
+
 	_, otelPresent := os.LookupEnv("OTEL_SERVICE_NAME")
 
 	if otelPresent {
