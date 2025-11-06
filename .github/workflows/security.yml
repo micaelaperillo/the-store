@@ -42,11 +42,9 @@ jobs:
       - name: Set should-run output
         id: check
         run: |
-          # Always run on schedule
           if [[ "${{ github.event_name }}" == "schedule" ]]; then
             echo "should-run=true" >> $GITHUB_OUTPUT
           else
-            # For push/PR/workflow_call, use the paths-filter result
             echo "should-run=${{ steps.filter.outputs.dependencies }}" >> $GITHUB_OUTPUT
           fi
 
@@ -55,6 +53,9 @@ jobs:
     if: needs.detect-changes.outputs.should-run == 'true'
     name: Secrets scan
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: zricethezav/gitleaks:latest
     steps:
@@ -65,8 +66,15 @@ jobs:
 
       - name: Run Gitleaks
         run: |
-          gitleaks detect --source . --verbose --no-git || true
+          gitleaks detect --source . --verbose --no-git --report-format sarif --report-path gitleaks.sarif || true
         continue-on-error: true
+
+      - name: Upload Gitleaks results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gitleaks.sarif
+          category: gitleaks
   dependency-review:
     name: Dependency Review
     needs: detect-changes
@@ -86,6 +94,9 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: maven:3.9-eclipse-temurin-21
     strategy:
@@ -107,8 +118,20 @@ jobs:
       - name: Check for vulnerable dependencies
         working-directory: ./src/${{ matrix.service }}
         run: |
-          mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -DnvdApiKey=${NVD_API_KEY} || true
+          mvn org.owasp:dependency-check-maven:check \
+            -DfailBuildOnCVSS=7 \
+            -DnvdApiKey=${NVD_API_KEY} \
+            -Dformats=HTML,SARIF || true
         continue-on-error: true
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+
+      - name: Upload OWASP results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ./src/${{ matrix.service }}/target/dependency-check-report.sarif
+          category: owasp-${{ matrix.service }}
 
       - name: Upload dependency reports
         uses: actions/upload-artifact@v4
@@ -122,6 +145,9 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: golang:1.23
     steps:
@@ -133,8 +159,15 @@ jobs:
         run: |
           go list -m all
           go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+          govulncheck -format sarif ./... > govulncheck.sarif || true
         continue-on-error: true
+
+      - name: Upload govulncheck results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: ./src/catalog/govulncheck.sarif
+          category: govulncheck
 
   node-dependency-scan:
     name: Node.js Dependency Analysis
@@ -163,7 +196,6 @@ jobs:
       - name: Audit dependencies without installing
         working-directory: ./src/${{ matrix.service }}
         run: |
-          # Audit using the lock file only
           npm audit --audit-level=moderate
         continue-on-error: true
 
@@ -217,6 +249,9 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: aquasec/trivy:latest
     strategy:
@@ -237,14 +272,26 @@ jobs:
           echo "Scanning Dockerfile for ${{ matrix.service }}..."
           trivy config ./src/${{ matrix.service }}/Dockerfile \
             --severity CRITICAL,HIGH \
+            --format sarif \
+            --output trivy-${{ matrix.service }}.sarif \
             --exit-code 0
         continue-on-error: true
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-${{ matrix.service }}.sarif
+          category: trivy-${{ matrix.service }}
 
   iac-security:
     name: IaC Security Scan
     needs: detect-changes
     if: needs.detect-changes.outputs.should-run == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     container:
       image: bridgecrew/checkov:latest
     steps:
@@ -253,7 +300,14 @@ jobs:
 
       - name: Run Checkov
         run: |
-          checkov --directory . --framework dockerfile,kubernetes --quiet --soft-fail
+          checkov --directory . --framework dockerfile,kubernetes --quiet --soft-fail --output sarif --output-file-path checkov-results
+
+      - name: Upload Checkov results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results/results_sarif.sarif
+          category: checkov
 
   codeql:
     name: CodeQL Analysis
