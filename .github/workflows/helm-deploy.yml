@@ -3,18 +3,38 @@ name: Deploy to Kubernetes cluster with Helm
 on:
   workflow_call:
     secrets:
-      DOCKERHUB_USERNAME:
-        required: true
-      KUBECONFIG:
-        required: true
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
+        DOCKERHUB_USERNAME:
+          required: true
+        KUBECONFIG:
+          required: true
+        AWS_ACCESS_KEY_ID:
+          required: true
+        AWS_SECRET_ACCESS_KEY:
+          required: true
 
 jobs:
-  deploy:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.filter.outputs.changes }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            cart: "src/cart/**"
+            catalog: "src/catalog/**"
+            checkout: "src/checkout/**"
+            load-generator: "src/load-generator/**"
+            orders: "src/orders/**"
+            ui: "src/ui/**"
+
+  deploy: 
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.changed != '[]'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,7 +54,7 @@ jobs:
         run: |
           echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
           chmod 600 ${{ github.workspace }}/kubeconfig
-
+        
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -47,27 +67,18 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           KUBECONFIG: ${{ github.workspace }}/kubeconfig
         run: |
-          cd the-store-chart
-
+          cd the-store-chart 
           helm dependency build
-
-          kubectl get secret the-store-chart-ingress-nginx-admission -n default \
-            -o jsonpath='{.data.ca}' | base64 --decode > webhook-ca.crt
-          kubectl patch validatingwebhookconfiguration the-store-chart-ingress-nginx-admission \
-            --type='json' \
-            -p '[{"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"'"$(cat ./webhook-ca.crt | base64 | tr -d '\n')"'" }]'
-
-          helm upgrade --install the-store-chart . \
-          --set cart.image.repository=$DOCKERHUB_USERNAME/the-store-cart \
-          --set catalog.image.repository=$DOCKERHUB_USERNAME/the-store-catalog \
-          --set checkout.image.repository=$DOCKERHUB_USERNAME/the-store-checkout \
-          --set orders.image.repository=$DOCKERHUB_USERNAME/the-store-orders \
-          --set ui.image.repository=$DOCKERHUB_USERNAME/the-store-ui \
-          --set cart.image.tag=latest \
-          --set catalog.image.tag=latest \
-          --set checkout.image.tag=latest \
-          --set orders.image.tag=latest \
-          --set ui.image.tag=latest \
-          --namespace default \
-          --kubeconfig $KUBECONFIG \
-          --create-namespace
+          helm upgrade --install the-store . \
+            --set cart.image.repository=$DOCKERHUB_USERNAME/the-store-cart \
+            --set catalog.image.repository=$DOCKERHUB_USERNAME/the-store-catalog \
+            --set checkout.image.repository=$DOCKERHUB_USERNAME/the-store-checkout \
+            --set orders.image.repository=$DOCKERHUB_USERNAME/the-store-orders \
+            --set ui.image.repository=$DOCKERHUB_USERNAME/the-store-ui \
+            --set cart.image.tag=latest \
+            --set catalog.image.tag=latest \
+            --set checkout.image.tag=latest \
+            --set orders.image.tag=latest \
+            --set ui.image.tag=latest \
+            --namespace default \
+            --create-namespace

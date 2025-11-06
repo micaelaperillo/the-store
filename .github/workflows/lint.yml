@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Detect source code changes
         uses: dorny/paths-filter@v3
@@ -40,6 +42,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run Biome linter
         uses: github/super-linter@v4
@@ -64,6 +68,18 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go environment 
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.0'
+
+      - name: Download Go modules
+        run: |
+          cd src/catalog # Assuming main.go is in src/catalog
+          go mod download
 
       - name: Run Go linter
         uses: github/super-linter@v4
@@ -93,6 +109,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Run Checkstyle linter
         uses: github/super-linter@v4
@@ -117,6 +135,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       - name: Commit and push linting fixes
         uses: stefanzweifel/git-auto-commit-action@v5

@@ -23,6 +23,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { CheckoutModule } from './checkout/checkout.module';
 
+const errorVariable = 'Lint Failure';
+
 async function bootstrap() {
   // Start SDK before nestjs factory create
   await otelSDK.start();
