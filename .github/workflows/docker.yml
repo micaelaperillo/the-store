@@ -3,10 +3,10 @@ name: Build and Push Docker Images
 on:
   workflow_call:
     secrets:
-        DOCKERHUB_USERNAME:
-          required: true
-        DOCKERHUB_TOKEN:
-          required: true
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
 
 env:
   IMAGE_NAME: the-store
@@ -53,12 +53,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker image
+      - name: Build and Push Docker image for ${{ matrix.service }}
         uses: docker/build-push-action@v5
         with:
           context: ./src/${{ matrix.service }}
           file: ./src/${{ matrix.service }}/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/the-store:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/the-store:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:${{ github.sha }}
