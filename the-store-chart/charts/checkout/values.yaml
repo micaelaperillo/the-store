@@ -6,7 +6,7 @@ serviceAccount:
 image:
   repository: the-store-checkout
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   name: checkout

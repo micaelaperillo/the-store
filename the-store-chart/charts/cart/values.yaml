@@ -6,7 +6,7 @@ serviceAccount:
 image:
   repository: the-store-cart
   tag: latest
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 service:
   name: carts
