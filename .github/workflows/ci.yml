@@ -53,7 +53,7 @@ jobs:
 
   test:
     name: Run unit tests
-    needs: [lint]
+    needs: [lint, security]
     uses: ./.github/workflows/test.yml
 
   build-and-push:
