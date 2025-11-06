@@ -14,7 +14,7 @@ RUN dnf --setopt=install_weak_deps=False install -q -y \
 
 VOLUME /tmp
 WORKDIR /
-
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa
 COPY .mvn .mvn
 COPY mvnw .
 COPY pom.xml .
