@@ -2,7 +2,7 @@ name: Deploy to Kubernetes cluster with Helm
 
 on:
   workflow_call:
-    input: 
+    inputs: 
       kubeconfig_name: 
         required: false
         default: KUBECONFIG
@@ -59,7 +59,7 @@ jobs:
 
       - name: Create kubeconfig file
         run: |
-          if [ "${{ input.kubeconfig_name }}" = "OVPN_KUBECONFIG" ]; then
+          if [ "${{ inputs.kubeconfig_name }}" = "OVPN_KUBECONFIG" ]; then
             echo "${{ secrets.OVPN_KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
           else
             echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
