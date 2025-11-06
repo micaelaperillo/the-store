@@ -13,18 +13,21 @@ on:
         required: true
       NVD_API_KEY:
         required: true
+    outputs:
+      vpn_result:
+        description: "VPN result propagated from auth.yaml"
+        value: ${{ jobs.auth.outputs.vpn_status }}
 
 jobs:
-  # auth:
-  #   uses: ./.github/workflows/auth.yml
-  #   secrets:
-  #     OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}
-  #     OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
-  #     OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
+  auth:
+    uses: ./.github/workflows/auth.yml
+    secrets:
+      OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}
+      OVPN_CLIENT_KEY: ${{ secrets.OVPN_CLIENT_KEY }}
+      OVPN_TLS_AUTH_KEY: ${{ secrets.OVPN_TLS_AUTH_KEY }}
 
   lint:
     name: Lint Code Base
-    # needs: [auth]
     uses: ./.github/workflows/lint.yml
 
   # security:
@@ -47,7 +50,7 @@ jobs:
 
   build-and-push:
     name: Build and Push Docker Images
-    # needs: [test]
+    needs: [test]
     if: |
       always() &&
       !contains(needs.*.result, 'failure') &&

@@ -2,11 +2,18 @@ name: Deploy to Kubernetes cluster with Helm
 
 on:
   workflow_call:
+    input: 
+      kubeconfig_name: 
+        required: false
+        default: KUBECONFIG
+        type: string
     secrets:
         DOCKERHUB_USERNAME:
           required: true
         KUBECONFIG:
           required: true
+        OVPN_KUBECONFIG:
+          required: false
         AWS_ACCESS_KEY_ID:
           required: true
         AWS_SECRET_ACCESS_KEY:
@@ -52,7 +59,11 @@ jobs:
 
       - name: Create kubeconfig file
         run: |
-          echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
+          if [ "${{ input.kubeconfig_name }}" = "OVPN_KUBECONFIG" ]; then
+            echo "${{ secrets.OVPN_KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
+          else
+            echo "${{ secrets.KUBECONFIG }}" > ${{ github.workspace }}/kubeconfig
+          fi
           chmod 600 ${{ github.workspace }}/kubeconfig
         
       - name: Configure AWS credentials

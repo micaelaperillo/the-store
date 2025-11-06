@@ -9,10 +9,15 @@ on:
         required: true
       OVPN_TLS_AUTH_KEY:
         required: true
+    outputs:
+      vpn_status:
+        description: "VPN authentication result"
+        value: ${{ jobs.authenticate-vpn.outputs.vpn_status }}
 
 jobs:
   authenticate-vpn:
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - name: Checkout
@@ -33,3 +38,13 @@ jobs:
           config_file: client.ovpn
           client_key: ${{ secrets.OVPN_CLIENT_KEY }}
           tls_auth_key: ${{ secrets.OVPN_TLS_AUTH_KEY }}
+      
+      - name: Set status
+        id: set_status
+        if: always() # ensure this runs even if connect fails
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "result=OVPN_KUBECONFIG" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=KUBECONFIG" >> "$GITHUB_OUTPUT"
+          fi
