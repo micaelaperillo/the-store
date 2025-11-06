@@ -18,6 +18,8 @@ jobs:
   authenticate-vpn:
     runs-on: ubuntu-latest
     continue-on-error: true
+    outputs:
+      vpn_status: ${{ steps.set_status.outputs.result }}
 
     steps:
       - name: Checkout
@@ -33,15 +35,17 @@ jobs:
           echo "${{ secrets.OVPN_CONFIG }}" > client.ovpn
 
       - name: Connect to VPN
+        id: vpn_connect
         uses: kota65535/github-openvpn-connect-action@v3
         with:
           config_file: client.ovpn
+        continue-on-error: true
 
       - name: Set status
         id: set_status
         if: always() # ensure this runs even if connect fails
         run: |
-          if [ "${{ job.status }}" = "success" ]; then
+          if [ "${{ steps.vpn_connect.outcome }}" = "success" ]; then
             echo "result=OVPN_KUBECONFIG" >> "$GITHUB_OUTPUT"
           else
             echo "result=KUBECONFIG" >> "$GITHUB_OUTPUT"
