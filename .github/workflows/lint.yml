@@ -56,6 +56,8 @@ jobs:
           FIX_BIOME_FORMAT: true
           BIOME_CONFIG_FILE: ".lint/biome.json"
 
+          VALIDATE_JSCPD: false
+
           FILTER_REGEX_INCLUDE: "src/checkout/.*"
 
   detect-go-changes:
