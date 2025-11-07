@@ -16,64 +16,64 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class ChaosService {
-  private latency: number = 0;
-  private errorStatus: number = 0;
-  private isLatencyOn: boolean = false;
-  private isErrorStatusOn: boolean = false;
-  private isHealthy: boolean = true;
+	private latency: number = 0;
+	private errorStatus: number = 0;
+	private isLatencyOn: boolean = false;
+	private isErrorStatusOn: boolean = false;
+	private isHealthy: boolean = true;
 
-  setLatency(ms: number): void {
-    this.latency = ms;
-    this.isLatencyOn = true;
-  }
+	setLatency(ms: number): void {
+		this.latency = ms;
+		this.isLatencyOn = true;
+	}
 
-  setErrorStatus(status: number): void {
-    this.errorStatus = status;
-    this.isErrorStatusOn = true;
-  }
+	setErrorStatus(status: number): void {
+		this.errorStatus = status;
+		this.isErrorStatusOn = true;
+	}
 
-  disableLatency(): void {
-    this.isLatencyOn = false;
-  }
+	disableLatency(): void {
+		this.isLatencyOn = false;
+	}
 
-  disableErrorStatus(): void {
-    this.isErrorStatusOn = false;
-  }
+	disableErrorStatus(): void {
+		this.isErrorStatusOn = false;
+	}
 
-  setHealth(healthy: boolean): void {
-    this.isHealthy = healthy;
-  }
+	setHealth(healthy: boolean): void {
+		this.isHealthy = healthy;
+	}
 
-  getStatus() {
-    return {
-      latency: {
-        enabled: this.isLatencyOn,
-        value: this.latency,
-      },
-      error_status: {
-        enabled: this.isErrorStatusOn,
-        code: this.errorStatus,
-      },
-    };
-  }
+	getStatus() {
+		return {
+			error_status: {
+				code: this.errorStatus,
+				enabled: this.isErrorStatusOn,
+			},
+			latency: {
+				enabled: this.isLatencyOn,
+				value: this.latency,
+			},
+		};
+	}
 
-  isSystemHealthy(): boolean {
-    return this.isHealthy;
-  }
+	isSystemHealthy(): boolean {
+		return this.isHealthy;
+	}
 
-  shouldApplyChaos(path: string): boolean {
-    return !path.startsWith('/chaos');
-  }
+	shouldApplyChaos(path: string): boolean {
+		return !path.startsWith("/chaos");
+	}
 
-  getLatencyDelay(): number | null {
-    return this.isLatencyOn ? this.latency : null;
-  }
+	getLatencyDelay(): number | null {
+		return this.isLatencyOn ? this.latency : null;
+	}
 
-  getErrorStatus(): number | null {
-    return this.isErrorStatusOn ? this.errorStatus : null;
-  }
+	getErrorStatus(): number | null {
+		return this.isErrorStatusOn ? this.errorStatus : null;
+	}
 }

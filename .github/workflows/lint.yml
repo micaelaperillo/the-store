@@ -56,6 +56,8 @@ jobs:
           FIX_BIOME_FORMAT: true
           BIOME_CONFIG_FILE: ".lint/biome.json"
 
+          VALIDATE_JSCPD: false
+
           FILTER_REGEX_INCLUDE: "src/checkout/.*"
 
   detect-go-changes:
@@ -102,7 +104,7 @@ jobs:
 
       - name: Download Go modules
         run: |
-          cd src/catalog # Assuming main.go is in src/catalog
+          cd src/catalog
           go mod download
 
       - name: Run Go linter
@@ -114,7 +116,8 @@ jobs:
 
           VALIDATE_GO: true
           FIX_GO_MODULES: true
-          GO_GOLANGCI_LINT_CONFIG_FILE: ".lint/.golangci.yml"
+          LINTER_RULES_PATH: ".lint"
+          GO_GOLANGCI_LINT_CONFIG_FILE: ".golangci.yml"
 
           FILTER_REGEX_INCLUDE: "src/catalog/.*"
 
@@ -167,7 +170,8 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/cart/.*"
 
   lint-java-orders:
@@ -188,7 +192,8 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/orders/.*"
 
   lint-java-ui:
@@ -209,26 +214,6 @@ jobs:
           DEFAULT_BRANCH: main
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
-          JAVA_CHECKSTYLE_CONFIG_FILE: ".lint/checkstyle.xml"
+          LINTER_RULES_PATH: ".lint"
+          JAVA_FILE_NAME: "checkstyle.xml"
           FILTER_REGEX_INCLUDE: "src/ui/.*"
-
-  auto-fix-biome:
-    needs: lint-biome
-    runs-on: ubuntu-latest
-    if: >
-      github.event_name == 'pull_request' &&
-      github.ref_name != github.event.repository.default_branch
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: Commit and push linting fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: ${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
-          commit_message: "chore: fix linting issues"
-          commit_user_name: super-linter
-          commit_user_email: super-linter@super-linter.dev

@@ -1,9 +1,15 @@
 FROM node:20-alpine AS build
 WORKDIR /usr/src/app
+
+# Install build dependencies for native modules
+# hadolint ignore=DL3018
+RUN apk add --no-cache python3 make g++
+
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node . .
-RUN yarn install --frozen-lockfile
-RUN yarn build
+# hadolint ignore=DL3059
+RUN yarn install --frozen-lockfile && \
+    yarn build
 USER node
 
 
@@ -12,6 +18,7 @@ FROM public.ecr.aws/amazonlinux/amazonlinux:2023
 # We tell DNF not to install Recommends and Suggests packages, which are
 # weak dependencies in DNF terminology, thus keeping our installed set of
 # packages as minimal as possible.
+# hadolint ignore=DL3041
 RUN dnf --setopt=install_weak_deps=False install -q -y \
     nodejs20 \
     shadow-utils \

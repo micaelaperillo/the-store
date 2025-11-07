@@ -16,120 +16,120 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { Checkout } from './models/Checkout';
-import { CheckoutRequest } from './models/CheckoutRequest';
-import { IOrdersService } from './orders/IOrdersService';
-import { serialize, deserialize } from 'class-transformer';
-import { CheckoutSubmitted } from './models/CheckoutSubmitted';
-import { IShippingService } from './shipping';
-import { ICheckoutRepository } from './repositories';
-import { Item } from './models/Item';
-import { ShippingRates } from './models/ShippingRates';
+import { Inject, Injectable } from "@nestjs/common";
+import { deserialize, serialize } from "class-transformer";
+import { Checkout } from "./models/Checkout";
+import type { CheckoutRequest } from "./models/CheckoutRequest";
+import type { CheckoutSubmitted } from "./models/CheckoutSubmitted";
+import type { Item } from "./models/Item";
+import type { ShippingRates } from "./models/ShippingRates";
+import type { IOrdersService } from "./orders/IOrdersService";
+import type { ICheckoutRepository } from "./repositories";
+import type { IShippingService } from "./shipping";
 
 @Injectable()
 export class CheckoutService {
-  constructor(
-    @Inject('CheckoutRepository')
-    private checkoutRepository: ICheckoutRepository,
-    @Inject('OrdersService') private ordersService: IOrdersService,
-    @Inject('ShippingService') private shippingService: IShippingService,
-  ) {}
+	constructor(
+		@Inject("CheckoutRepository")
+		private checkoutRepository: ICheckoutRepository,
+		@Inject("OrdersService") private ordersService: IOrdersService,
+		@Inject("ShippingService") private shippingService: IShippingService,
+	) {}
 
-  async get(customerId: string): Promise<Checkout> {
-    const json = await this.checkoutRepository.get(customerId);
+	async get(customerId: string): Promise<Checkout> {
+		const json = await this.checkoutRepository.get(customerId);
 
-    if (!json) {
-      return null;
-    }
+		if (!json) {
+			return null;
+		}
 
-    return deserialize(Checkout, json);
-  }
+		return deserialize(Checkout, json);
+	}
 
-  async update(
-    customerId: string,
-    request: CheckoutRequest,
-  ): Promise<Checkout> {
-    let subtotal = 0;
+	async update(
+		customerId: string,
+		request: CheckoutRequest,
+	): Promise<Checkout> {
+		let subtotal = 0;
 
-    const items: Item[] = request.items.map((item) => {
-      const totalCost = item.price * item.quantity;
-      subtotal += totalCost;
+		const items: Item[] = request.items.map((item) => {
+			const totalCost = item.price * item.quantity;
+			subtotal += totalCost;
 
-      return {
-        ...item,
-        totalCost,
-      };
-    });
+			return {
+				...item,
+				totalCost,
+			};
+		});
 
-    const tax = request.shippingAddress ? 5 : -1; // Hardcoded $10 tax for now
-    const effectiveTax = tax == -1 ? 0 : tax;
+		const tax = request.shippingAddress ? 5 : -1; // Hardcoded $10 tax for now
+		const effectiveTax = tax === -1 ? 0 : tax;
 
-    let shipping = -1;
-    let shippingRates: ShippingRates = null;
+		let shipping = -1;
+		let shippingRates: ShippingRates = null;
 
-    if (request.shippingAddress) {
-      shippingRates = await this.shippingService.getShippingRates(request);
+		if (request.shippingAddress) {
+			shippingRates = await this.shippingService.getShippingRates(request);
 
-      if (shippingRates) {
-        for (let i = 0; i < shippingRates.rates.length; i++) {
-          if (shippingRates.rates[i].token == request.deliveryOptionToken) {
-            shipping = shippingRates.rates[i].amount;
-          }
-        }
-      }
-    }
+			if (shippingRates) {
+				for (let i = 0; i < shippingRates.rates.length; i++) {
+					if (shippingRates.rates[i].token === request.deliveryOptionToken) {
+						shipping = shippingRates.rates[i].amount;
+					}
+				}
+			}
+		}
 
-    const effectiveShipping = shipping == -1 ? 0 : shipping;
+		const effectiveShipping = shipping === -1 ? 0 : shipping;
 
-    const checkout: Checkout = {
-      shippingRates,
-      shippingAddress: request.shippingAddress,
-      deliveryOptionToken: request.deliveryOptionToken,
-      items,
-      paymentId: this.makeid(16),
-      paymentToken: this.makeid(32),
-      subtotal,
-      shipping,
-      tax,
-      total: subtotal + effectiveTax + effectiveShipping,
-    };
+		const checkout: Checkout = {
+			deliveryOptionToken: request.deliveryOptionToken,
+			items,
+			paymentId: this.makeid(16),
+			paymentToken: this.makeid(32),
+			shipping,
+			shippingAddress: request.shippingAddress,
+			shippingRates,
+			subtotal,
+			tax,
+			total: subtotal + effectiveTax + effectiveShipping,
+		};
 
-    await this.checkoutRepository.set(customerId, serialize(checkout));
+		await this.checkoutRepository.set(customerId, serialize(checkout));
 
-    return checkout;
-  }
+		return checkout;
+	}
 
-  async submit(customerId: string): Promise<CheckoutSubmitted> {
-    const checkout = await this.get(customerId);
+	async submit(customerId: string): Promise<CheckoutSubmitted> {
+		const checkout = await this.get(customerId);
 
-    if (!checkout) {
-      throw new Error('Checkout not found');
-    }
+		if (!checkout) {
+			throw new Error("Checkout not found");
+		}
 
-    const order = await this.ordersService.create(checkout);
+		const order = await this.ordersService.create(checkout);
 
-    await this.checkoutRepository.remove(customerId);
+		await this.checkoutRepository.remove(customerId);
 
-    return Promise.resolve({
-      orderId: order.id,
-      email: checkout.shippingAddress.email,
-      items: checkout.items,
-      subtotal: checkout.subtotal,
-      shipping: checkout.shipping,
-      tax: checkout.tax,
-      total: checkout.total,
-    });
-  }
+		return Promise.resolve({
+			email: checkout.shippingAddress.email,
+			items: checkout.items,
+			orderId: order.id,
+			shipping: checkout.shipping,
+			subtotal: checkout.subtotal,
+			tax: checkout.tax,
+			total: checkout.total,
+		});
+	}
 
-  private makeid(length) {
-    let result = '';
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
+	private makeid(length) {
+		let result = "";
+		const characters =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		const charactersLength = characters.length;
+		for (let i = 0; i < length; i++) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	}
 }

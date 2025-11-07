@@ -16,18 +16,18 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Type } from 'class-transformer';
-import { IsString, ValidateNested } from 'class-validator';
-import { ShippingOption } from './ShippingOption';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { IsString, ValidateNested } from "class-validator";
+import { ShippingOption } from "./ShippingOption";
 
 export class ShippingRates {
-  @IsString()
-  @ApiProperty()
-  shipmentId: string;
+	@IsString()
+	@ApiProperty()
+	shipmentId: string;
 
-  @ValidateNested({ each: true })
-  @Type(() => ShippingOption)
-  @ApiProperty({ type: [ShippingOption] })
-  rates: ShippingOption[];
+	@ValidateNested({ each: true })
+	@Type(() => ShippingOption)
+	@ApiProperty({ type: [ShippingOption] })
+	rates: ShippingOption[];
 }

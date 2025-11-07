@@ -117,7 +117,7 @@ func main() {
 
 	r.GET("/health", func(c *gin.Context) {
 		if !chaosController.IsHealthy() {
-			c.AbortWithError(503, fmt.Errorf("health check failed"))
+			_ = c.AbortWithError(503, fmt.Errorf("health check failed"))
 			return
 		}
 

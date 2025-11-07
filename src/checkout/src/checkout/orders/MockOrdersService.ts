@@ -16,16 +16,16 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Checkout } from '../models/Checkout';
-import { ExistingOrder } from '../../clients/orders/api';
-import { IOrdersService } from './IOrdersService';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
+import type { ExistingOrder } from "../../clients/orders/api";
+import type { Checkout } from "../models/Checkout";
+import type { IOrdersService } from "./IOrdersService";
 
 export class MockOrdersService implements IOrdersService {
-  async create(checkout: Checkout): Promise<ExistingOrder> {
-    return {
-      id: uuidv4(),
-      email: checkout.shippingAddress.email,
-    };
-  }
+	async create(checkout: Checkout): Promise<ExistingOrder> {
+		return {
+			email: checkout.shippingAddress.email,
+			id: uuidv4(),
+		};
+	}
 }

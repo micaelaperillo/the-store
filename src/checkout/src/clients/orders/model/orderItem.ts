@@ -29,46 +29,46 @@
  */
 
 export class OrderItem {
-  'price'?: number;
-  'productId'?: string;
-  'quantity'?: number;
-  'totalCost'?: number;
-  'name'?: string;
-  static discriminator: string | undefined = undefined;
+	price?: number;
+	productId?: string;
+	quantity?: number;
+	totalCost?: number;
+	name?: string;
+	static discriminator: string | undefined = undefined;
 
-  static attributeTypeMap: Array<{
-    name: string;
-    baseName: string;
-    type: string;
-  }> = [
-    {
-      name: 'unitCost',
-      baseName: 'price',
-      type: 'number',
-    },
-    {
-      name: 'id',
-      baseName: 'productId',
-      type: 'string',
-    },
-    {
-      name: 'name',
-      baseName: 'name',
-      type: 'string',
-    },
-    {
-      name: 'totalCost',
-      baseName: 'totalCost',
-      type: 'number',
-    },
-    {
-      name: 'quantity',
-      baseName: 'quantity',
-      type: 'number',
-    },
-  ];
+	static attributeTypeMap: Array<{
+		name: string;
+		baseName: string;
+		type: string;
+	}> = [
+		{
+			baseName: "price",
+			name: "unitCost",
+			type: "number",
+		},
+		{
+			baseName: "productId",
+			name: "id",
+			type: "string",
+		},
+		{
+			baseName: "name",
+			name: "name",
+			type: "string",
+		},
+		{
+			baseName: "totalCost",
+			name: "totalCost",
+			type: "number",
+		},
+		{
+			baseName: "quantity",
+			name: "quantity",
+			type: "number",
+		},
+	];
 
-  static getAttributeTypeMap() {
-    return OrderItem.attributeTypeMap;
-  }
+	static getAttributeTypeMap() {
+		return OrderItem.attributeTypeMap;
+	}
 }

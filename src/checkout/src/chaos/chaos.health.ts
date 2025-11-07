@@ -16,30 +16,30 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable } from "@nestjs/common";
 import {
-  HealthIndicator,
-  HealthIndicatorResult,
-  HealthCheckError,
-} from '@nestjs/terminus';
-import { ChaosService } from './chaos.service';
+	HealthCheckError,
+	HealthIndicator,
+	type HealthIndicatorResult,
+} from "@nestjs/terminus";
+import type { ChaosService } from "./chaos.service";
 
 @Injectable()
 export class ChaosHealthIndicator extends HealthIndicator {
-  constructor(private chaosService: ChaosService) {
-    super();
-  }
+	constructor(private chaosService: ChaosService) {
+		super();
+	}
 
-  async isHealthy(key: string = 'chaos'): Promise<HealthIndicatorResult> {
-    const isHealthy = this.chaosService.isSystemHealthy();
+	async isHealthy(key: string = "chaos"): Promise<HealthIndicatorResult> {
+		const isHealthy = this.chaosService.isSystemHealthy();
 
-    if (!isHealthy) {
-      throw new HealthCheckError(
-        'Chaos check failed',
-        this.getStatus(key, false, { reason: 'Chaos failure enabled' }),
-      );
-    }
+		if (!isHealthy) {
+			throw new HealthCheckError(
+				"Chaos check failed",
+				this.getStatus(key, false, { reason: "Chaos failure enabled" }),
+			);
+		}
 
-    return this.getStatus(key, true);
-  }
+		return this.getStatus(key, true);
+	}
 }

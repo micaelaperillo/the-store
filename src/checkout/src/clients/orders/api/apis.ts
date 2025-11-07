@@ -16,28 +16,29 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-export * from './ordersApi';
-import { OrdersApi } from './ordersApi';
-import * as fs from 'fs';
-import * as http from 'http';
+export * from "./ordersApi";
+
+import type * as fs from "node:fs";
+import type * as http from "node:http";
+import { OrdersApi } from "./ordersApi";
 
 export class HttpError extends Error {
-  constructor(
-    public response: http.IncomingMessage,
-    public body: any,
-    public statusCode?: number,
-  ) {
-    super('HTTP request failed');
-    this.name = 'HttpError';
-  }
+	constructor(
+		public response: http.IncomingMessage,
+		public body: any,
+		public statusCode?: number,
+	) {
+		super("HTTP request failed");
+		this.name = "HttpError";
+	}
 }
 
 export interface RequestDetailedFile {
-  value: Buffer;
-  options?: {
-    filename?: string;
-    contentType?: string;
-  };
+	value: Buffer;
+	options?: {
+		filename?: string;
+		contentType?: string;
+	};
 }
 
 export type RequestFile = string | Buffer | fs.ReadStream | RequestDetailedFile;

@@ -29,6 +29,7 @@ on:
 
 jobs:
   auth:
+    name: Test OpenVPN connection
     uses: ./.github/workflows/auth.yml
     secrets:
       OVPN_CONFIG: ${{ secrets.OVPN_CONFIG }}

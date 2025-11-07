@@ -16,25 +16,25 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsInt, Min } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsInt, IsString, Min } from "class-validator";
 
 export class ItemRequest {
-  @IsString()
-  @ApiProperty()
-  id: string;
+	@IsString()
+	@ApiProperty()
+	id: string;
 
-  @IsString()
-  @ApiProperty()
-  name: string;
+	@IsString()
+	@ApiProperty()
+	name: string;
 
-  @IsInt()
-  @Min(0)
-  @ApiProperty({ type: 'integer' })
-  quantity: number;
+	@IsInt()
+	@Min(0)
+	@ApiProperty({ type: "integer" })
+	quantity: number;
 
-  @IsInt()
-  @Min(0)
-  @ApiProperty({ type: 'integer' })
-  price: number;
+	@IsInt()
+	@Min(0)
+	@ApiProperty({ type: "integer" })
+	price: number;
 }

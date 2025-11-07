@@ -16,39 +16,39 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import otelSDK from './tracing';
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { CheckoutModule } from './checkout/checkout.module';
+import { ValidationPipe } from "@nestjs/common";
+import { NestFactory } from "@nestjs/core";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import { AppModule } from "./app.module";
+import { CheckoutModule } from "./checkout/checkout.module";
+import otelSDK from "./tracing";
 
-const errorVariable = 'Lint Failure';
+const _errorVariable = "Lint Failure";
 
 async function bootstrap() {
-  // Start SDK before nestjs factory create
-  await otelSDK.start();
+	// Start SDK before nestjs factory create
+	await otelSDK.start();
 
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+	const app = await NestFactory.create(AppModule);
+	app.useGlobalPipes(new ValidationPipe());
 
-  const config = new DocumentBuilder()
-    .setTitle('Checkout service')
-    .setDescription('The checkout API')
-    .setVersion('1.0')
-    .addTag('checkout')
-    .addServer('http://localhost:8000')
-    .build();
-  const document = SwaggerModule.createDocument(app, config, {
-    include: [CheckoutModule],
-  });
-  SwaggerModule.setup('api', app, document);
+	const config = new DocumentBuilder()
+		.setTitle("Checkout service")
+		.setDescription("The checkout API")
+		.setVersion("1.0")
+		.addTag("checkout")
+		.addServer("http://localhost:8000")
+		.build();
+	const document = SwaggerModule.createDocument(app, config, {
+		include: [CheckoutModule],
+	});
+	SwaggerModule.setup("api", app, document);
 
-  // Starts listening for shutdown hooks
-  app.enableShutdownHooks();
+	// Starts listening for shutdown hooks
+	app.enableShutdownHooks();
 
-  const port = process.env.PORT || 8080;
+	const port = process.env.PORT || 8080;
 
-  await app.listen(port);
+	await app.listen(port);
 }
 bootstrap();

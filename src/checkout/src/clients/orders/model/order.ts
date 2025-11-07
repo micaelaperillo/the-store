@@ -28,45 +28,44 @@
  * Do not edit the class manually.
  */
 
-import { RequestFile } from '../api';
-import { OrderItem } from './orderItem';
+import type { OrderItem } from "./orderItem";
 
 export class Order {
-  'email'?: string;
-  'firstName'?: string;
-  'items'?: Array<OrderItem>;
-  'lastName'?: string;
+	email?: string;
+	firstName?: string;
+	items?: Array<OrderItem>;
+	lastName?: string;
 
-  static discriminator: string | undefined = undefined;
+	static discriminator: string | undefined = undefined;
 
-  static attributeTypeMap: Array<{
-    name: string;
-    baseName: string;
-    type: string;
-  }> = [
-    {
-      name: 'email',
-      baseName: 'email',
-      type: 'string',
-    },
-    {
-      name: 'firstName',
-      baseName: 'firstName',
-      type: 'string',
-    },
-    {
-      name: 'items',
-      baseName: 'items',
-      type: 'Array<OrderItem>',
-    },
-    {
-      name: 'lastName',
-      baseName: 'lastName',
-      type: 'string',
-    },
-  ];
+	static attributeTypeMap: Array<{
+		name: string;
+		baseName: string;
+		type: string;
+	}> = [
+		{
+			baseName: "email",
+			name: "email",
+			type: "string",
+		},
+		{
+			baseName: "firstName",
+			name: "firstName",
+			type: "string",
+		},
+		{
+			baseName: "items",
+			name: "items",
+			type: "Array<OrderItem>",
+		},
+		{
+			baseName: "lastName",
+			name: "lastName",
+			type: "string",
+		},
+	];
 
-  static getAttributeTypeMap() {
-    return Order.attributeTypeMap;
-  }
+	static getAttributeTypeMap() {
+		return Order.attributeTypeMap;
+	}
 }

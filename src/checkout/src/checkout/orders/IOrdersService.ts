@@ -16,9 +16,9 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ExistingOrder } from '../../clients/orders/api';
-import { Checkout } from '../models/Checkout';
+import type { ExistingOrder } from "../../clients/orders/api";
+import type { Checkout } from "../models/Checkout";
 
 export interface IOrdersService {
-  create(checkout: Checkout): Promise<ExistingOrder>;
+	create(checkout: Checkout): Promise<ExistingOrder>;
 }

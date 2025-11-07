@@ -16,41 +16,41 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { CheckoutRequest } from '../models/CheckoutRequest';
-import { ShippingRates } from '../models/ShippingRates';
-import { IShippingService } from './IShippingService';
+import type { CheckoutRequest } from "../models/CheckoutRequest";
+import type { ShippingRates } from "../models/ShippingRates";
+import type { IShippingService } from "./IShippingService";
 
 export class MockShippingService implements IShippingService {
-  constructor(private prefix: string) {}
+	constructor(private prefix: string) {}
 
-  async getShippingRates(_request: CheckoutRequest): Promise<ShippingRates> {
-    return Promise.resolve({
-      shipmentId: this.makeid(32),
-      rates: [
-        {
-          name: `${this.prefix}Priority Mail`,
-          amount: 10,
-          token: 'priority-mail',
-          estimatedDays: 10,
-        },
-        {
-          name: `${this.prefix}Priority Mail Express`,
-          amount: 25,
-          token: 'priority-mail-express',
-          estimatedDays: 5,
-        },
-      ],
-    });
-  }
+	async getShippingRates(_request: CheckoutRequest): Promise<ShippingRates> {
+		return Promise.resolve({
+			rates: [
+				{
+					amount: 10,
+					estimatedDays: 10,
+					name: `${this.prefix}Priority Mail`,
+					token: "priority-mail",
+				},
+				{
+					amount: 25,
+					estimatedDays: 5,
+					name: `${this.prefix}Priority Mail Express`,
+					token: "priority-mail-express",
+				},
+			],
+			shipmentId: this.makeid(32),
+		});
+	}
 
-  private makeid(length) {
-    let result = '';
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-  }
+	private makeid(length) {
+		let result = "";
+		const characters =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+		const charactersLength = characters.length;
+		for (let i = 0; i < length; i++) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	}
 }

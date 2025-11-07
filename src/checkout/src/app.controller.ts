@@ -16,41 +16,40 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { Controller, Get } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
-import { ChaosHealthIndicator } from './chaos/chaos.health';
-
+import { Controller, Get } from "@nestjs/common";
+import type { ConfigService } from "@nestjs/config";
+import { HealthCheck, type HealthCheckService } from "@nestjs/terminus";
+import type { ChaosHealthIndicator } from "./chaos/chaos.health";
 
 @Controller()
 export class AppController {
-  constructor(
-    private healthCheckService: HealthCheckService,
-    private chaosHealthIndicator: ChaosHealthIndicator,
-    private configService: ConfigService,
-  ) {}
+	constructor(
+		private healthCheckService: HealthCheckService,
+		private chaosHealthIndicator: ChaosHealthIndicator,
+		private configService: ConfigService,
+	) {}
 
-  @Get('health')
-  @HealthCheck()
-  health() {
-    return this.healthCheckService.check([
-      () => this.chaosHealthIndicator.isHealthy(),
-    ]);
-  }
+	@Get("health")
+	@HealthCheck()
+	health() {
+		return this.healthCheckService.check([
+			() => this.chaosHealthIndicator.isHealthy(),
+		]);
+	}
 
-  @Get('topology')
-  @HealthCheck()
-  topology() {
-    const persistenceProvider = this.configService.get('persistence.provider');
-    let databaseEndpoint = 'N/A';
+	@Get("topology")
+	@HealthCheck()
+	topology() {
+		const persistenceProvider = this.configService.get("persistence.provider");
+		let databaseEndpoint = "N/A";
 
-    if (persistenceProvider === 'redis') {
-      databaseEndpoint = this.configService.get('persistence.redis.url');
-    }
+		if (persistenceProvider === "redis") {
+			databaseEndpoint = this.configService.get("persistence.redis.url");
+		}
 
-    return {
-      persistenceProvider,
-      databaseEndpoint,
-    };
-  }
+		return {
+			databaseEndpoint,
+			persistenceProvider,
+		};
+	}
 }

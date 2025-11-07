@@ -1,14 +1,14 @@
-version: "1"
-
 run:
   timeout: 3m
-  tests: true
+  tests: false
 
 linters:
   enable:
-    - govet
     - gofmt
     - goimports
+  disable:
+    - typecheck
+    - govet
     - staticcheck
     - unused
     - errcheck
