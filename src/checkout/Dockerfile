@@ -1,5 +1,9 @@
 FROM node:20-alpine AS build
 WORKDIR /usr/src/app
+
+# Install build dependencies for native modules
+RUN apk add --no-cache python3 make g++
+
 COPY --chown=node:node package*.json ./
 COPY --chown=node:node . .
 RUN yarn install --frozen-lockfile
