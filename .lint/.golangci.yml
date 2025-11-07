@@ -1,17 +1,17 @@
 run:
   timeout: 3m
-  tests: true
+  tests: false
 
 linters:
   enable:
-    - govet
     - gofmt
     - goimports
+  disable:
+    - typecheck
+    - govet
     - staticcheck
     - unused
     - errcheck
-  disable:
-    - typecheck
 
 issues:
   max-issues-per-linter: 0

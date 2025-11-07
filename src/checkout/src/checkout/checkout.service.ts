@@ -31,9 +31,9 @@ import type { IShippingService } from "./shipping";
 export class CheckoutService {
 	constructor(
 		@Inject("CheckoutRepository")
-		private _checkoutRepository: ICheckoutRepository,
-		@Inject("OrdersService") private _ordersService: IOrdersService,
-		@Inject("ShippingService") private _shippingService: IShippingService,
+		private checkoutRepository: ICheckoutRepository,
+		@Inject("OrdersService") private ordersService: IOrdersService,
+		@Inject("ShippingService") private shippingService: IShippingService,
 	) {}
 
 	async get(customerId: string): Promise<Checkout> {
