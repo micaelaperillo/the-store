@@ -64,7 +64,6 @@ func main() {
 	ctx := context.Background()
 
 	_, otelPresent := os.LookupEnv("OTEL_SERVICE_NAME")
-	var unnecessaryVar = "Lint fail"
 
 	if otelPresent {
 		_, err := initTracer(ctx)
