@@ -64,7 +64,7 @@ func main() {
 	ctx := context.Background()
 
 	_, otelPresent := os.LookupEnv("OTEL_SERVICE_NAME")
-
+	var unnecessaryVar := "Hello world!"
 	if otelPresent {
 		_, err := initTracer(ctx)
 		if err != nil {
