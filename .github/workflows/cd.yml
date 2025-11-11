@@ -2,7 +2,7 @@ name: CD Pipeline
 
 on:
   push:
-    branches: ["main", "development", "demo/linting-error", "demo/failed-build", "demo/comment-test", "demo/emoji-test"]
+    branches: ["main", "development", "demo/linting-error", "demo/failed-build", "demo/comment-test", "demo/emoji-test", "demo/live-demo"]
 
 jobs:
   ci:
