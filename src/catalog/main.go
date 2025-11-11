@@ -62,7 +62,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-
+	// this is a comment :)
 	_, otelPresent := os.LookupEnv("OTEL_SERVICE_NAME")
 
 	if otelPresent {
