@@ -20,7 +20,7 @@ COPY mvnw .
 COPY pom.xml .
 
 RUN chmod +x ./mvnw
-RUN ./mvnw dependency:go-offline -B -q
+RUN ./mvnw dependency:go-offline -B -q -Dmaven.artifact.resolver.retryCount=5
 
 COPY ./src ./src
 
