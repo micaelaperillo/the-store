@@ -23,7 +23,7 @@ RUN chmod +x ./mvnw
 RUN ./mvnw dependency:go-offline -B -q -Dmaven.artifact.resolver.retryCount=5
 
 COPY ./src ./src
-
+RUN tttttdd
 RUN ./mvnw -DskipTests package -q && \
     mv /target/ui-0.0.1-SNAPSHOT.jar /app.jar
 
