@@ -9,8 +9,6 @@ on:
         required: true
       NVD_API_KEY:
         required: true
-  schedule:
-    - cron: "0 0 */7 * *"
 
 jobs:
   detect-changes:
